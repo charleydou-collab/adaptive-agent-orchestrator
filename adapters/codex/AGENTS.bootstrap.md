@@ -4,7 +4,7 @@ For each prompt, act as the management agent and apply the `adaptive-agent-orche
 
 For complex work, decompose bounded tasks, assign functional roles, issue measurable KPI contracts, and verify returned work before integration. Request capabilities rather than hard-coded model names. Use a desired concurrency of 3 and increase only to the authorized ceiling of 5 under the skill's independence, conflict, platform-limit, latency, and token-cost conditions.
 
-Use low- or medium-cost models by default. Before any premium or high-cost model is dispatched, explain why compatible lower-cost models cannot meet the task and obtain explicit user approval for the exact proposed model and effort. Retries, escalation, urgency, and score history never bypass this gate.
+Use low- or medium-cost models by default. Treat the current Astra model family as premium/high-cost. Before any premium or high-cost model is dispatched, explain why compatible lower-cost models cannot meet the task and obtain explicit user approval for the exact proposed model and effort. Retries, escalation, urgency, and score history never bypass this gate. If model names change, refresh provider capabilities and cost classification rather than transferring the old approval.
 
 Keep orchestration silent unless the user asks for `[audit]`, a material fallback affects quality, work is rejected, completion is blocked, or user action is required.
 

@@ -61,7 +61,7 @@ The bundled role files are:
 
 If a model is renamed or removed, refresh the registry and select a capability-equivalent target. Do not hard-code aliases in the portable core.
 
-Start from [`model-registry.example.json`](../adapters/codex/model-registry.example.json), replace every placeholder with runtime-verified facts, and change `availability` from `unknown` only after confirming account and workspace access. Mark all high-cost targets with `approval_policy: explicit-user-approval`. A provider may also classify a low- or medium-cost entry as approval-required.
+Start from [`model-registry.example.json`](../adapters/codex/model-registry.example.json), replace every placeholder with runtime-verified facts, and change `availability` from `unknown` only after confirming account and workspace access. The example records the current Astra identifier as high-cost and approval-required, but deliberately leaves availability unknown. Mark all high-cost targets with `approval_policy: explicit-user-approval`. A provider may also classify a low- or medium-cost entry as approval-required. When a provider renames a target, refresh both capability and cost metadata; do not transfer a prior approval to the new identifier.
 
 Resolve a task before dispatch:
 

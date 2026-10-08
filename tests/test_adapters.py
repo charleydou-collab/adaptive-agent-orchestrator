@@ -112,6 +112,10 @@ class AdapterTests(unittest.TestCase):
         self.assertTrue(premium)
         self.assertTrue(all(item["cost_class"] in ("low", "medium") for item in ordinary))
         self.assertTrue(all(item["cost_class"] == "high" for item in premium))
+        astra = [item for item in registry["models"] if "astra" in item["model_id"].lower()]
+        self.assertEqual(len(astra), 1)
+        self.assertEqual(astra[0]["cost_class"], "high")
+        self.assertEqual(astra[0]["approval_policy"], "explicit-user-approval")
 
 
 if __name__ == "__main__":

@@ -20,9 +20,9 @@
       "availability": "unknown"
     },
     {
-      "provider": "replace-with-provider",
-      "model_id": "replace-with-premium-model",
-      "version": "replace-with-version",
+      "provider": "openai",
+      "model_id": "gpt-6-astra",
+      "version": "runtime-discovered",
       "capability_tiers": ["balanced", "advanced"],
       "capabilities": ["text-analysis", "complex-reasoning"],
       "cost_class": "high",
