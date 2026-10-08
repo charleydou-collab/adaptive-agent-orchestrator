@@ -7,13 +7,13 @@
       "enum": [
         "complete",
         "partial",
+        "needs-input",
         "blocked",
         "failed"
       ]
     },
     "deliverable": {
-      "type": "string",
-      "minLength": 1
+      "type": ["string", "null"]
     },
     "kpi_results": {
       "type": "array",
@@ -89,6 +89,9 @@
         "reason"
       ],
       "additionalProperties": false
+    },
+    "clarification_request": {
+      "$ref": "clarification-request.schema.json"
     }
   },
   "required": [
@@ -100,5 +103,12 @@
     "blockers",
     "escalation_recommendation"
   ],
-  "additionalProperties": false
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "needs-input"}}},
+      "then": {"required": ["clarification_request"]},
+      "else": {"properties": {"deliverable": {"type": "string", "minLength": 1}}}
+    }
+  ]
 }

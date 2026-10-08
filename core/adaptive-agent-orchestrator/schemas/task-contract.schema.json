@@ -232,6 +232,11 @@
       "additionalProperties": false,
       "description": "Transient adapter resolution; excluded from portable task identity. Validate availability, effort and capabilities against the adapter registry before dispatch."
     },
+    "clarification_responses": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "clarification-response.schema.json"}
+    },
     "completion_report_schema": {
       "const": "completion-report.schema.json"
     }

@@ -2,6 +2,20 @@
 
 All notable changes are documented here. Versions follow Semantic Versioning.
 
+## [0.1.3] - 2026-10-08
+
+### Added
+
+- Structured clarification request and response schemas with task correlation.
+- A `needs-input` completion state for workers that encounter material ambiguity.
+- Management-agent question consolidation with two to four choices, a recommended option, and a custom-response path.
+- Branch-local pausing so independent work can continue while a dependent task waits for user input.
+
+### Changed
+
+- Codex, ChatGPT web, and generic adapters now route worker questions through the management agent and return answers to the same task.
+- Clarification content is explicitly excluded from persistent scoring metadata.
+
 ## [0.1.2] - 2026-10-08
 
 ### Changed

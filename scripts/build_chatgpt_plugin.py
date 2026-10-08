@@ -9,6 +9,7 @@ import zipfile
 
 PROJECT = Path(__file__).resolve().parents[1]
 MANIFEST = PROJECT / "adapters" / "chatgpt-web" / "plugin" / "plugin.json"
+COMPATIBILITY_MANIFEST = PROJECT / "adapters" / "chatgpt-web" / "plugin" / ".codex-plugin" / "plugin.json"
 CORE = PROJECT / "core" / "adaptive-agent-orchestrator"
 PLUGIN_NAME = "adaptive-agent-orchestrator"
 FIXED_TIME = (2026, 1, 1, 0, 0, 0)
@@ -16,6 +17,7 @@ FIXED_TIME = (2026, 1, 1, 0, 0, 0)
 
 def source_files():
     yield MANIFEST, f"{PLUGIN_NAME}/plugin.json"
+    yield COMPATIBILITY_MANIFEST, f"{PLUGIN_NAME}/.codex-plugin/plugin.json"
     yield CORE / "SKILL.md", f"{PLUGIN_NAME}/skills/{PLUGIN_NAME}/SKILL.md"
     for folder in ("references", "schemas"):
         for path in sorted((CORE / folder).glob("*")):

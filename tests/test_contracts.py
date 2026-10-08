@@ -11,7 +11,15 @@ import unittest
 
 SCHEMAS = Path(__file__).resolve().parents[1] / 'core/adaptive-agent-orchestrator/schemas'
 ROOT = Path(__file__).resolve().parents[1]
-NAMES = ('platform-capabilities', 'model-registry', 'task-contract', 'completion-report', 'ledger-event')
+NAMES = (
+    'platform-capabilities',
+    'model-registry',
+    'task-contract',
+    'completion-report',
+    'clarification-request',
+    'clarification-response',
+    'ledger-event',
+)
 
 
 def json_equal(left, right):
@@ -113,6 +121,41 @@ def report():
         'escalation_recommendation': {'recommended': False, 'reason': 'Accepted'}}
 
 
+def clarification_request():
+    return {
+        'request_id': 'clarify-1',
+        'task_id': 'task-1',
+        'question': 'Which reporting calendar should govern the summary?',
+        'why_needed': 'Fiscal-year and calendar-year interpretations change the totals.',
+        'blocked_scope': 'The year-over-year comparison is paused; source inventory can continue.',
+        'options': [
+            {'option_id': 'fiscal', 'label': 'Fiscal year',
+             'description': 'Use the organization-defined fiscal-year boundaries.'},
+            {'option_id': 'calendar', 'label': 'Calendar year',
+             'description': 'Use January through December boundaries.'},
+        ],
+        'recommended_option_id': 'fiscal',
+        'custom_response_allowed': True,
+        'safe_assumption': {
+            'available': True,
+            'value': 'Use the fiscal year stated in the source document.',
+            'risk': 'The result may not match a calendar-year comparison.',
+        },
+    }
+
+
+def clarification_response():
+    return {
+        'request_id': 'clarify-1',
+        'task_id': 'task-1',
+        'selected_option_id': 'fiscal',
+        'custom_response': None,
+        'answer_text': 'Use the fiscal year stated in the source document.',
+        'answered_by': 'user',
+        'answered_at': '2026-10-08T00:00:00Z',
+    }
+
+
 def event():
     return {'event_id': 'event-1', 'task_id': 'task-1', 'adapter': 'adapter-a', 'platform': 'platform-a',
         'agent_identity': 'researcher-1', 'archetype': 'researcher', 'role': 'Researcher', 'task_category': 'research',
@@ -149,13 +192,55 @@ class ContractTests(unittest.TestCase):
                 self.assertNotIn(token, text)
 
     def test_valid_examples_and_required_fields(self):
-        for name, value in zip(NAMES, (platform(), registry(), contract(), report(), event())):
+        values = (
+            platform(), registry(), contract(), report(), clarification_request(),
+            clarification_response(), event(),
+        )
+        for name, value in zip(NAMES, values):
             self.check(name, value)
             for key in self.schemas[name]['required']:
                 broken = copy.deepcopy(value)
                 del broken[key]
                 with self.assertRaises(AssertionError, msg=f'{name}: {key}'):
                     self.check(name, broken)
+
+    def test_needs_input_report_requires_structured_clarification(self):
+        value = report()
+        value['status'] = 'needs-input'
+        value['deliverable'] = None
+        value['clarification_request'] = clarification_request()
+        self.check('completion-report', value)
+
+        missing = copy.deepcopy(value)
+        del missing['clarification_request']
+        with self.assertRaises(AssertionError):
+            self.check('completion-report', missing)
+
+    def test_clarification_request_requires_choices_recommendation_and_custom_response(self):
+        value = clarification_request()
+        self.check('clarification-request', value)
+
+        for mutation in ('too-few-options', 'no-recommendation', 'no-custom-response'):
+            broken = copy.deepcopy(value)
+            if mutation == 'too-few-options':
+                broken['options'] = broken['options'][:1]
+            elif mutation == 'no-recommendation':
+                del broken['recommended_option_id']
+            else:
+                broken['custom_response_allowed'] = False
+            with self.assertRaises(AssertionError, msg=mutation):
+                self.check('clarification-request', broken)
+
+    def test_answer_can_be_routed_back_to_original_task(self):
+        value = contract()
+        value['clarification_responses'] = [clarification_response()]
+        self.check('task-contract', value)
+
+        mismatched = copy.deepcopy(value)
+        mismatched['clarification_responses'][0]['task_id'] = 'different-task'
+        self.check('task-contract', mismatched)  # Structurally valid; management validates correlation.
+        self.assertNotEqual(
+            mismatched['task_id'], mismatched['clarification_responses'][0]['task_id'])
 
     def test_checked_in_platform_declarations_match_schema(self):
         paths = (

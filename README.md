@@ -4,7 +4,7 @@ Adaptive Agent Orchestrator is a model-neutral orchestration skill for decomposi
 
 The repository includes a portable core skill, adapters for Codex, ChatGPT web, and generic prompt-based systems, JSON Schemas for task and completion contracts, and a deterministic local performance ledger for platforms that support durable storage.
 
-> Status: `0.1.2` is an early public release. The core package and tests are usable. Public ChatGPT directory submission still requires the publisher's verified identity, hosted policy/support URLs, and final portal validation.
+> Status: `0.1.3` is an early public release. The core package and tests are usable. Public ChatGPT directory submission still requires the publisher's verified identity, hosted policy/support URLs, and final portal validation.
 
 ## What it does
 
@@ -17,6 +17,7 @@ The repository includes a portable core skill, adapters for Codex, ChatGPT web, 
 - Runs independent tasks concurrently when the host supports native workers, with desired concurrency `3` and an authorized ceiling of `5`.
 - Degrades honestly to native sequential workers, sequential role simulation, or direct execution when native parallel workers are unavailable.
 - Applies one same-capability repair and one capability/reasoning escalation before asking the user to authorize further attempts.
+- Relays material worker questions through the management agent with correlated choices, a recommendation, and a custom-response path, while unrelated work continues.
 - Optionally maintains a local, metadata-only score ledger for reusable operational identities. Scoring never grants authority or overrides truthfulness, safety, permissions, or user intent.
 
 ## Architecture
@@ -32,6 +33,10 @@ flowchart LR
     W1 --> C[Structured completion reports]
     W2 --> C
     W3 --> C
+    W1 -->|needs input| Q[Clarification relay]
+    Q -->|choices plus custom response| U
+    U -->|correlated answer| Q
+    Q --> W1
     C --> V[Verification against KPIs and evidence]
     V -->|accepted| F[Integrated final result]
     V -->|repairable| X[Correction or escalation]

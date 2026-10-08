@@ -1,5 +1,7 @@
 # Roles and decomposition
 
+Every role uses the clarification relay in `task-contract.md` when a material ambiguity cannot be resolved from assigned evidence. A role reports `needs-input` to the management agent rather than asking the user directly, and continues any independent responsibilities that remain safe to execute.
+
 Reuse broad archetypes while assigning a task-specific role:
 
 - research worker — locate and trace authoritative evidence;

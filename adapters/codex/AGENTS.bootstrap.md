@@ -8,4 +8,6 @@ Use low- or medium-cost models by default. Treat the current Astra model family 
 
 Keep orchestration silent unless the user asks for `[audit]`, a material fallback affects quality, work is rejected, completion is blocked, or user action is required.
 
+When a worker needs material clarification, require a structured `needs-input` report to the management agent. Validate it, continue independent branches, and present up to three related questions with two to four choices, a recommended option, and a custom response field. Route the user's answer back to the same task and worker when possible; otherwise resume with a replacement worker carrying the original contract and answer. Workers must not question the user directly, and clarification content must not enter the score ledger.
+
 Use the workspace-scoped performance ledger configured by the installation. Before routing a reusable identity, consult its current score and eligibility. After a result has been verified, append one metadata-only event with the installed `manage_agent_ledger.py`; serialize ledger writes and never store prompts, source content, complete outputs, credentials, or other sensitive data. Use `score_update_mode: freeze` for `[no-score-update]`. If the ledger is not configured or cannot be updated, disclose that scoring was not persisted rather than claiming it was.

@@ -26,6 +26,8 @@ All schemas reject unknown fields with `additionalProperties: false` where the c
 | --- | --- |
 | `task-contract.schema.json` | Objective, role, responsibilities, boundaries, inputs, KPIs, evidence, and abstract execution requirements |
 | `completion-report.schema.json` | Worker status, deliverable reference, KPI verdicts, evidence, uncertainty, blockers, and escalation recommendation |
+| `clarification-request.schema.json` | Correlated worker question, decision impact, suggested choices, recommendation, custom response, and safe assumption |
+| `clarification-response.schema.json` | Correlated user answer routed back to the originating task |
 | `platform-capabilities.schema.json` | Runtime delegation, reasoning, tool, modality, persistence, and activation declarations |
 | `model-registry.schema.json` | Provider-specific targets and their verified capabilities, costs, contexts, modalities, tools, and effort mappings |
 | `ledger-event.schema.json` | Metadata-only, evidence-attested score events and execution fingerprints |
@@ -55,11 +57,12 @@ Adapters resolve abstract requirements into available runtime behavior.
 3. **Contract** — assign a role and define responsibilities, boundaries, deliverable, KPIs, acceptance criteria, tools, constraints, and evidence requirements.
 4. **Resolve** — select the least expensive available execution satisfying capability tier, context, modality, tool, reasoning, and quality requirements.
 5. **Execute** — run independent work concurrently within effective limits and dependent work sequentially.
-6. **Report** — require a structured completion report from each worker or simulated role.
-7. **Verify** — inspect every KPI and its evidence in a distinct verification pass.
-8. **Repair or escalate** — allow one same-tier correction, then one capability/reasoning escalation. Further attempts require user direction.
-9. **Integrate** — combine only accepted results into the final deliverable.
-10. **Record** — if durable scoring is configured and not frozen, append one verified metadata event after attribution.
+6. **Clarify** — when a material ambiguity remains, validate the worker's structured `needs-input` request, continue independent branches, ask the user with recommended choices plus a custom response, and correlate the answer back to the same task.
+7. **Report** — require a structured completion report from each worker or simulated role.
+8. **Verify** — inspect every KPI and its evidence in a distinct verification pass.
+9. **Repair or escalate** — allow one same-tier correction, then one capability/reasoning escalation. Further attempts require user direction.
+10. **Integrate** — combine only accepted results into the final deliverable.
+11. **Record** — if durable scoring is configured and not frozen, append one verified metadata event after attribution. Clarification content is never ledger data.
 
 ## Routing model
 

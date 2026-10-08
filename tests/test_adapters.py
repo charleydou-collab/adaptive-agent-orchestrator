@@ -56,6 +56,21 @@ class AdapterTests(unittest.TestCase):
                 self.assertIn("explicit", text)
                 self.assertIn("approval", text)
 
+    def test_every_management_adapter_relays_worker_clarifications(self):
+        paths = (
+            ADAPTERS / "codex" / "AGENTS.bootstrap.md",
+            ADAPTERS / "chatgpt-web" / "custom-instructions-bootstrap.md",
+            ADAPTERS / "generic-prompt" / "system-prompt.md",
+        )
+        for path in paths:
+            with self.subTest(path=path):
+                text = path.read_text(encoding="utf-8").lower()
+                for token in (
+                    "clarification", "management agent", "recommended option",
+                    "custom response", "same task",
+                ):
+                    self.assertIn(token, text)
+
     def test_codex_persistent_scoring_is_configurable_and_portable(self):
         bootstrap = (ADAPTERS / "codex" / "AGENTS.bootstrap.md").read_text(encoding="utf-8")
         ledger = (ADAPTERS / "codex" / "ledger-config.example.yaml").read_text(encoding="utf-8")

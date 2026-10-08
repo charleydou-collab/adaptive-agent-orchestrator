@@ -27,14 +27,28 @@ class PluginBuildTests(unittest.TestCase):
                 roots = {PurePosixPath(name).parts[0] for name in names}
                 self.assertEqual(roots, {"adaptive-agent-orchestrator"})
                 self.assertIn("adaptive-agent-orchestrator/plugin.json", names)
+                self.assertIn("adaptive-agent-orchestrator/.codex-plugin/plugin.json", names)
                 skill = "adaptive-agent-orchestrator/skills/adaptive-agent-orchestrator/SKILL.md"
                 self.assertIn(skill, names)
                 self.assertFalse(any("/scripts/" in name for name in names))
                 self.assertFalse(any(".sdd" in name or "__pycache__" in name for name in names))
                 manifest = json.loads(bundle.read("adaptive-agent-orchestrator/plugin.json"))
+                compatibility = json.loads(bundle.read("adaptive-agent-orchestrator/.codex-plugin/plugin.json"))
                 self.assertEqual(manifest["name"], "adaptive-agent-orchestrator")
-                self.assertEqual(manifest["version"], "0.1.2")
+                self.assertEqual(manifest["version"], "0.1.3")
+                self.assertEqual(compatibility["name"], manifest["name"])
+                self.assertEqual(compatibility["version"], manifest["version"])
+                for key, value in manifest["extensions"]["com.openai"]["interface"].items():
+                    self.assertEqual(compatibility["interface"][key], value)
                 self.assertIn(b"name: adaptive-agent-orchestrator", bundle.read(skill))
+                self.assertIn(
+                    "adaptive-agent-orchestrator/skills/adaptive-agent-orchestrator/schemas/clarification-request.schema.json",
+                    names,
+                )
+                self.assertIn(
+                    "adaptive-agent-orchestrator/skills/adaptive-agent-orchestrator/schemas/clarification-response.schema.json",
+                    names,
+                )
 
     def test_repeated_build_is_byte_identical(self):
         with tempfile.TemporaryDirectory() as directory:
