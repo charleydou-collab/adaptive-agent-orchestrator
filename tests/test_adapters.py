@@ -14,6 +14,8 @@ class AdapterTests(unittest.TestCase):
             "codex/AGENTS.bootstrap.md",
             "codex/config-snippet.toml",
             "codex/ledger-config.example.yaml",
+            "codex/model-registry.example.json",
+            "codex/execution-requirements.example.json",
             "codex/platform-capabilities.yaml",
             "chatgpt-web/custom-instructions-bootstrap.md",
             "chatgpt-web/platform-capabilities.yaml",
@@ -40,6 +42,19 @@ class AdapterTests(unittest.TestCase):
         bootstrap = (ADAPTERS / "codex" / "AGENTS.bootstrap.md").read_text(encoding="utf-8").lower()
         self.assertIn("desired concurrency of 3", bootstrap)
         self.assertIn("authorized ceiling of 5", bootstrap)
+
+    def test_every_management_adapter_preserves_premium_consent_gate(self):
+        paths = (
+            ADAPTERS / "codex" / "AGENTS.bootstrap.md",
+            ADAPTERS / "chatgpt-web" / "custom-instructions-bootstrap.md",
+            ADAPTERS / "generic-prompt" / "system-prompt.md",
+        )
+        for path in paths:
+            with self.subTest(path=path):
+                text = path.read_text(encoding="utf-8").lower()
+                self.assertIn("premium", text)
+                self.assertIn("explicit", text)
+                self.assertIn("approval", text)
 
     def test_codex_persistent_scoring_is_configurable_and_portable(self):
         bootstrap = (ADAPTERS / "codex" / "AGENTS.bootstrap.md").read_text(encoding="utf-8")
@@ -87,6 +102,16 @@ class AdapterTests(unittest.TestCase):
                 self.assertIn("fallback_mode", value["delegation"])
                 self.assertIsInstance(value["models"]["registry"], dict)
                 self.assertIn("models", value["models"]["registry"])
+
+    def test_codex_registry_example_defaults_to_nonpremium_and_gates_premium(self):
+        registry = json.loads((ADAPTERS / "codex" / "model-registry.example.json").read_text(encoding="utf-8"))
+        self.assertGreaterEqual(len(registry["models"]), 2)
+        ordinary = [item for item in registry["models"] if item["approval_policy"] == "none"]
+        premium = [item for item in registry["models"] if item["approval_policy"] == "explicit-user-approval"]
+        self.assertTrue(ordinary)
+        self.assertTrue(premium)
+        self.assertTrue(all(item["cost_class"] in ("low", "medium") for item in ordinary))
+        self.assertTrue(all(item["cost_class"] == "high" for item in premium))
 
 
 if __name__ == "__main__":

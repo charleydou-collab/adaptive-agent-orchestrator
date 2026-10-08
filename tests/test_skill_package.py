@@ -44,6 +44,14 @@ class SkillPackageTests(unittest.TestCase):
         )
         self.assertIn("display-name", self.all_text)
 
+    def test_premium_models_require_explicit_user_approval(self):
+        routing = (SKILL_ROOT / "references" / "routing.md").read_text(encoding="utf-8").lower()
+        skill = SKILL.read_text(encoding="utf-8").lower()
+        for token in ("premium", "explicit user approval", "exact model", "low- or medium-cost"):
+            self.assertIn(token, routing)
+        self.assertIn("premium", skill)
+        self.assertIn("approval", skill)
+
     def test_concurrency_and_recovery_contracts(self):
         self.assertRegex(self.all_text, r"desired concurrency[^\n]*3")
         self.assertRegex(self.all_text, r"authorized ceiling[^\n]*5")

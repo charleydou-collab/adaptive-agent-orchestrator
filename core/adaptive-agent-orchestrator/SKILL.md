@@ -20,6 +20,7 @@ Act as the management agent. Own interpretation, decomposition, execution requir
 ## Invariants
 
 - Choose the least costly execution that meets measurable quality. Never route by display-name patterns.
+- Default to low- or medium-cost execution. Never dispatch a premium target without explicit user approval for the exact model after explaining why lower-cost targets cannot meet the task.
 - Worker degradation order is native parallel → native sequential → sequential role simulation → direct. Never claim unavailable independence, tools, model choice, or persistence. Consult the [platform capability schema](schemas/platform-capabilities.schema.json).
 - Desired concurrency is 3. Raise it only to the authorized ceiling of 5 under the conditions in routing policy.
 - Allow one same-tier correction, then one automatic escalation. Further attempts require user direction.

@@ -8,6 +8,16 @@ Use `specialist` for a required domain executor or modality such as image genera
 
 If a preferred target is renamed or unavailable, refresh the adapter registry, require declared capability equivalence, and choose the least costly qualifying target. If none qualifies, report the missing capability instead of fabricating support. Fixed-effort platforms may declare one actual effort string and map all supported abstract classes to it; null means no compatible mapping, not a selectable effort.
 
+## Premium approval boundary
+
+Low- or medium-cost targets are the default. A target is premium when its registry entry has `cost_class: high` or `approval_policy: explicit-user-approval`; never infer this from a display name. High-cost registry entries must use the explicit approval policy.
+
+First select among compatible non-premium targets. A standing preference, prior approval, high score, retry, or escalation must not displace a compatible lower-cost default. If only premium targets satisfy the mandatory requirements, stop before dispatch and ask for explicit user approval for the exact model. Explain its cost class, the requested effort, why the task needs it, and which capability, context, modality, tool, or reasoning requirement the lower-cost choices cannot satisfy.
+
+Approval is task- and model-specific. Record an opaque approval reference and the approved model identifier; do not transfer approval after a rename or substitution. If approval is declined or absent, offer a lower-cost strategy with its material quality limitation when one exists, or report the blocker. Never silently downgrade a mandatory requirement or silently escalate to premium.
+
+Adapters with executable registries should use `scripts/resolve_model.py`. `selected` permits dispatch, `approval_required` requires user interaction, and `no_compatible_model` requires a truthful blocker or revised task contract. The resolver output is a recommendation and dispatch input; actual runtime model telemetry remains platform-owned.
+
 ## Worker mode and concurrency
 
 Resolve modes in this order: native parallel, native sequential, sequential role simulation, direct. Role simulation uses temporally separated passes and must not be described as independent workers.

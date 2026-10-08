@@ -2,6 +2,22 @@
 
 All notable changes are documented here. Versions follow Semantic Versioning.
 
+## [0.1.1] - 2026-10-08
+
+### Added
+
+- Deterministic model resolver that filters availability, capability tier, context, modality, tools, and reasoning mappings before cost ranking.
+- Explicit premium approval policy in the model registry schema.
+- Machine-readable `selected`, `approval_required`, and `no_compatible_model` outcomes.
+- Safe registry and execution-requirement examples for Codex adapters.
+
+### Changed
+
+- Low- and medium-cost models are now the mandatory default routing pool.
+- Premium or high-cost models require a task-specific explanation and explicit approval for the exact model before dispatch.
+- Retry, escalation, prior approval, urgency, and score history cannot bypass the premium gate.
+- Approval does not transfer across model renames or substitutions.
+
 ## [0.1.0] - 2026-10-08
 
 ### Added
@@ -22,4 +38,3 @@ All notable changes are documented here. Versions follow Semantic Versioning.
 - Excludes scripts, runtime state, development records, local paths, and ledger data from the skills-only plugin archive.
 - Treats source documents and retrieved content as untrusted data rather than executable instructions.
 - Prohibits sensitive content in ledger metadata and rejects unknown event fields.
-

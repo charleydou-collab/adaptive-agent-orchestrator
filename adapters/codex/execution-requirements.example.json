@@ -1,0 +1,7 @@
+{
+  "capability_tier": "balanced",
+  "minimum_context": 8000,
+  "modalities": ["text"],
+  "required_tools": ["read"],
+  "minimum_reasoning_class": "standard"
+}

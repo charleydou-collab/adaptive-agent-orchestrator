@@ -1,0 +1,42 @@
+{
+  "models": [
+    {
+      "provider": "replace-with-provider",
+      "model_id": "replace-with-low-or-medium-cost-model",
+      "version": "replace-with-version",
+      "capability_tiers": ["economy", "balanced"],
+      "capabilities": ["text-analysis"],
+      "cost_class": "low",
+      "approval_policy": "none",
+      "context_window": 32000,
+      "modalities": ["text"],
+      "tools": ["read"],
+      "supported_efforts": ["low", "medium"],
+      "reasoning_mapping": {
+        "minimal": "low",
+        "standard": "medium",
+        "deep": null
+      },
+      "availability": "unknown"
+    },
+    {
+      "provider": "replace-with-provider",
+      "model_id": "replace-with-premium-model",
+      "version": "replace-with-version",
+      "capability_tiers": ["balanced", "advanced"],
+      "capabilities": ["text-analysis", "complex-reasoning"],
+      "cost_class": "high",
+      "approval_policy": "explicit-user-approval",
+      "context_window": 128000,
+      "modalities": ["text"],
+      "tools": ["read"],
+      "supported_efforts": ["low", "medium", "high"],
+      "reasoning_mapping": {
+        "minimal": "low",
+        "standard": "medium",
+        "deep": "high"
+      },
+      "availability": "unknown"
+    }
+  ]
+}

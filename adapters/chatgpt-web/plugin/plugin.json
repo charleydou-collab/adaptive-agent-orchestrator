@@ -1,14 +1,14 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "adaptive-agent-orchestrator",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Model-neutral task decomposition, capability routing, KPI verification, and cost-aware orchestration.",
   "extensions": {
     "com.openai": {
       "interface": {
         "displayName": "Adaptive Agent Orchestrator",
         "shortDescription": "Adaptive agent routing",
-        "longDescription": "A model-neutral management skill for complex AI work. It interprets outcomes and constraints, keeps simple tasks direct, decomposes larger requests into bounded functional roles, defines measurable task contracts, routes by required context, tools, modalities, reasoning depth, and quality class, and verifies every returned result against KPIs and evidence before integration. It supports honest fallback from native parallel workers to sequential workers, temporally separated role simulation, or direct execution according to the host's actual capabilities. The portable package does not provide models, connectors, native subagents, or persistent storage by itself. On standard ChatGPT web surfaces it does not claim per-worker model control or persistent scoring.",
+        "longDescription": "A model-neutral management skill for complex AI work. It interprets outcomes and constraints, keeps simple tasks direct, decomposes larger requests into bounded functional roles, defines measurable task contracts, routes by required context, tools, modalities, reasoning depth, and quality class, and verifies every returned result against KPIs and evidence before integration. Low- and medium-cost execution is preferred. Premium or high-cost execution requires an explanation and explicit user approval for the exact proposed model. It supports honest fallback from native parallel workers to sequential workers, temporally separated role simulation, or direct execution according to the host's actual capabilities. The portable package does not provide models, connectors, native subagents, or persistent storage by itself. On standard ChatGPT web surfaces it does not claim per-worker model control or persistent scoring.",
         "category": "Productivity",
         "websiteURL": "https://github.com/charleydou-collab/adaptive-agent-orchestrator",
         "supportURL": "https://github.com/charleydou-collab/adaptive-agent-orchestrator/issues",

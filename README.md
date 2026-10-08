@@ -4,7 +4,7 @@ Adaptive Agent Orchestrator is a model-neutral orchestration skill for decomposi
 
 The repository includes a portable core skill, adapters for Codex, ChatGPT web, and generic prompt-based systems, JSON Schemas for task and completion contracts, and a deterministic local performance ledger for platforms that support durable storage.
 
-> Status: `0.1.0` is an early public release. The core package and tests are usable. Public ChatGPT directory submission still requires the publisher's verified identity, hosted policy/support URLs, and final portal validation.
+> Status: `0.1.1` is an early public release. The core package and tests are usable. Public ChatGPT directory submission still requires the publisher's verified identity, hosted policy/support URLs, and final portal validation.
 
 ## What it does
 
@@ -13,6 +13,7 @@ The repository includes a portable core skill, adapters for Codex, ChatGPT web, 
 - Assigns complex work to functional roles such as research worker, document analyst, data analyst, synthesis worker, artifact producer, and verification auditor.
 - Defines measurable task contracts and structured completion reports with closed JSON Schemas.
 - Selects the least costly execution target that satisfies declared context, modality, tool, reasoning, and quality requirements.
+- Defaults to low- or medium-cost targets and blocks premium dispatch until the user approves the exact proposed model after receiving a task-specific explanation.
 - Runs independent tasks concurrently when the host supports native workers, with desired concurrency `3` and an authorized ceiling of `5`.
 - Degrades honestly to native sequential workers, sequential role simulation, or direct execution when native parallel workers are unavailable.
 - Applies one same-capability repair and one capability/reasoning escalation before asking the user to authorize further attempts.
@@ -39,6 +40,8 @@ flowchart LR
 ```
 
 The core contains policy and portable contracts. Each adapter declares what its host can actually do: worker delegation, model resolution, effort controls, tools, modalities, persistence, and activation. The adapter owns provider-specific model identifiers; the core never routes by model-name patterns.
+
+The deterministic resolver at `core/adaptive-agent-orchestrator/scripts/resolve_model.py` filters a refreshed registry by availability, capability tier, context, modalities, tools, and reasoning mapping. It selects the least costly compatible non-premium target. If only premium targets qualify, it returns `approval_required` with the exact recommendation and explanation instead of dispatching.
 
 See [Architecture](docs/ARCHITECTURE.md) for component boundaries and execution flow.
 
@@ -127,6 +130,8 @@ Use [`system-prompt.md`](adapters/generic-prompt/system-prompt.md) as a system o
 - `[no-score-update]` — verify normally while freezing score changes.
 - `show agent scorecard` — show score metadata genuinely available on the current platform.
 
+Premium approval is deliberately not a reusable global preference. It is bound to the current task and exact model identifier. A model rename, substitution, retry, or escalation requires a fresh routing decision and, when still premium, fresh approval.
+
 ## Verification and tests
 
 The suite validates package structure, deterministic builds, adapter honesty, bounded concurrency, model-neutral contracts, installer safeguards, schema closure, and ledger invariants.
@@ -159,4 +164,3 @@ The build is deterministic: identical source inputs produce byte-identical ZIP a
 ## License
 
 No license has been selected yet. Until the publisher adds a license, copyright law reserves all rights. Choose and add an appropriate license before inviting third-party reuse or contributions.
-

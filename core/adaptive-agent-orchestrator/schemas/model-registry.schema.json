@@ -48,6 +48,13 @@
               "high"
             ]
           },
+          "approval_policy": {
+            "enum": [
+              "none",
+              "explicit-user-approval"
+            ],
+            "description": "Dispatch consent boundary. High-cost targets must require explicit user approval."
+          },
           "context_window": {
             "type": "integer",
             "minimum": 1
@@ -114,6 +121,24 @@
             ]
           }
         },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "cost_class": {
+                  "const": "high"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "approval_policy": {
+                  "const": "explicit-user-approval"
+                }
+              }
+            }
+          }
+        ],
         "required": [
           "provider",
           "model_id",
@@ -121,6 +146,7 @@
           "capability_tiers",
           "capabilities",
           "cost_class",
+          "approval_policy",
           "context_window",
           "modalities",
           "tools",

@@ -61,6 +61,19 @@ The bundled role files are:
 
 If a model is renamed or removed, refresh the registry and select a capability-equivalent target. Do not hard-code aliases in the portable core.
 
+Start from [`model-registry.example.json`](../adapters/codex/model-registry.example.json), replace every placeholder with runtime-verified facts, and change `availability` from `unknown` only after confirming account and workspace access. Mark all high-cost targets with `approval_policy: explicit-user-approval`. A provider may also classify a low- or medium-cost entry as approval-required.
+
+Resolve a task before dispatch:
+
+```bash
+python3 core/adaptive-agent-orchestrator/scripts/resolve_model.py \
+  --registry /path/to/current-model-registry.json \
+  --requirements adapters/codex/execution-requirements.example.json \
+  --adapter codex-local
+```
+
+Exit code `0` means a low/medium target was selected. Exit code `3` means the returned premium recommendation requires user approval. After the user approves the exact model, repeat with both `--approved-model-id` and an opaque `--approval-ref`. Exit code `4` means no compatible model exists. Never treat an example registry with `availability: unknown` as dispatchable.
+
 ## Persistent ledger
 
 Create the parent directory before initialization:
@@ -123,4 +136,3 @@ If the platform exposes no workers, use temporally separated role simulation. If
 ## Uninstallation
 
 There is no destructive automated uninstaller. Restore the backed-up configuration only after comparing it with subsequent user changes. Remove the marked bootstrap block, registered role entries, copied role files, and copied skill manually. Preserve or archive the ledger according to the workspace's retention policy.
-

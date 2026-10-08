@@ -76,6 +76,7 @@ def validate(value, schema, root=None):
 def registry():
     return {'models': [{'provider': 'vendor-a', 'model_id': 'opaque-7', 'version': '1',
         'capability_tiers': ['balanced'], 'capabilities': ['analysis'], 'cost_class': 'low',
+        'approval_policy': 'none',
         'context_window': 32000, 'modalities': ['text'], 'tools': ['read'],
         'supported_efforts': ['normal'], 'reasoning_mapping': {'minimal': 'normal', 'standard': 'normal', 'deep': None},
         'availability': 'available'}]}
@@ -166,6 +167,10 @@ class ContractTests(unittest.TestCase):
             with self.subTest(path=path):
                 self.check('platform-capabilities', json.loads(path.read_text(encoding='utf-8')))
 
+    def test_codex_registry_example_matches_schema(self):
+        path = ROOT / 'adapters/codex/model-registry.example.json'
+        self.check('model-registry', json.loads(path.read_text(encoding='utf-8')))
+
     def test_model_rename_and_unavailability(self):
         models, task = registry(), contract()
         self.assertTrue(compatible(task, models))
@@ -177,6 +182,18 @@ class ContractTests(unittest.TestCase):
         models['models'][0]['availability'] = 'unavailable'
         self.check('model-registry', models)
         self.assertFalse(compatible(task, models))
+
+    def test_premium_registry_policy_is_explicit_and_high_cost_is_gated(self):
+        models = registry()
+        self.check('model-registry', models)
+        models['models'][0]['cost_class'] = 'high'
+        with self.assertRaises(AssertionError):
+            self.check('model-registry', models)
+        models['models'][0]['approval_policy'] = 'explicit-user-approval'
+        self.check('model-registry', models)
+        del models['models'][0]['approval_policy']
+        with self.assertRaises(AssertionError):
+            self.check('model-registry', models)
 
     def test_unsupported_effort(self):
         task = contract()

@@ -72,6 +72,10 @@ Tasks request an abstract tier:
 
 Reasoning classes are `minimal`, `standard`, and `deep`. Adapters map them to supported effort settings. A missing or null mapping means no compatible target; it is not permission to silently downgrade.
 
+`resolve_model.py` applies mandatory filters before price ranking. It first considers compatible entries with `cost_class` low or medium and no explicit approval policy. Premium entries—high-cost models or any entry marked `explicit-user-approval`—are considered only when no ordinary target qualifies. Without approval bound to the exact model identifier, the resolver returns an approval request rather than a dispatchable execution.
+
+This preserves rename safety: capability policy does not depend on a branded name, while approval does not silently transfer to a renamed or substituted target.
+
 Effective concurrency is the minimum of the desired concurrency, adapter maximum, workspace maximum, and number of conflict-free independent tasks. The desired value is `3`. It can rise to `5` only when at least four tasks are independent, parallel execution materially reduces latency, outputs cannot conflict, platform limits permit it, and the token cost is justified.
 
 ## Verification strength
@@ -93,4 +97,3 @@ The labels describe how the check was performed; they are not guarantees. The ve
 - Score history influences routing only after capability, availability, permissions, and task requirements are satisfied.
 - Ledger content is not tamper-evident and must live in an access-controlled path.
 - Provider behavior, privacy, retention, and billing remain governed by the selected host and integrations.
-
