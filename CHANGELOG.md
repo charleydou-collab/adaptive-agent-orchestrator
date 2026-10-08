@@ -2,6 +2,14 @@
 
 All notable changes are documented here. Versions follow Semantic Versioning.
 
+## [0.1.2] - 2026-10-08
+
+### Changed
+
+- Classifies the current Astra model family as premium/high-cost in the Codex adapter.
+- Requires refreshed capability and cost metadata when provider model names change instead of transferring an earlier approval.
+- Aligns the active global bootstrap, registry example, configuration documentation, GitHub source, and release package version.
+
 ## [0.1.1] - 2026-10-08
 
 ### Added

@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "adaptive-agent-orchestrator",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Model-neutral task decomposition, capability routing, KPI verification, and cost-aware orchestration.",
   "extensions": {
     "com.openai": {

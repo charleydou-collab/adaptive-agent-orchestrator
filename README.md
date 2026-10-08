@@ -4,7 +4,7 @@ Adaptive Agent Orchestrator is a model-neutral orchestration skill for decomposi
 
 The repository includes a portable core skill, adapters for Codex, ChatGPT web, and generic prompt-based systems, JSON Schemas for task and completion contracts, and a deterministic local performance ledger for platforms that support durable storage.
 
-> Status: `0.1.1` is an early public release. The core package and tests are usable. Public ChatGPT directory submission still requires the publisher's verified identity, hosted policy/support URLs, and final portal validation.
+> Status: `0.1.2` is an early public release. The core package and tests are usable. Public ChatGPT directory submission still requires the publisher's verified identity, hosted policy/support URLs, and final portal validation.
 
 ## What it does
 

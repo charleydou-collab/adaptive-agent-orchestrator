@@ -33,7 +33,7 @@ class PluginBuildTests(unittest.TestCase):
                 self.assertFalse(any(".sdd" in name or "__pycache__" in name for name in names))
                 manifest = json.loads(bundle.read("adaptive-agent-orchestrator/plugin.json"))
                 self.assertEqual(manifest["name"], "adaptive-agent-orchestrator")
-                self.assertEqual(manifest["version"], "0.1.1")
+                self.assertEqual(manifest["version"], "0.1.2")
                 self.assertIn(b"name: adaptive-agent-orchestrator", bundle.read(skill))
 
     def test_repeated_build_is_byte_identical(self):
