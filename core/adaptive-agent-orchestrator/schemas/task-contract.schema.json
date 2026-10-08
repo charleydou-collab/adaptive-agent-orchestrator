@@ -1,0 +1,257 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Canonical task contract",
+  "type": "object",
+  "properties": {
+    "task_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "agent_identity": {
+      "type": "string",
+      "minLength": 1
+    },
+    "role": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mission": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expertise": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "title",
+        "mission",
+        "expertise"
+      ],
+      "additionalProperties": false
+    },
+    "responsibilities": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "boundaries": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "objective": {
+      "type": "string",
+      "minLength": 1
+    },
+    "inputs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "expected_deliverable": {
+      "type": "string",
+      "minLength": 1
+    },
+    "quality_kpis": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "target": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "id",
+          "description",
+          "target"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "acceptance_criteria": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true,
+      "minItems": 1
+    },
+    "constraints": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "available_tools": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "evidence_requirements": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true,
+      "minItems": 1
+    },
+    "execution_requirements": {
+      "type": "object",
+      "properties": {
+        "capability_tier": {
+          "enum": [
+            "economy",
+            "balanced",
+            "advanced",
+            "specialist"
+          ]
+        },
+        "minimum_context": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "modalities": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "required_tools": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "minimum_reasoning_class": {
+          "enum": [
+            "minimal",
+            "standard",
+            "deep"
+          ]
+        },
+        "quality_class": {
+          "enum": [
+            "draft",
+            "production"
+          ]
+        }
+      },
+      "required": [
+        "capability_tier",
+        "minimum_context",
+        "modalities",
+        "required_tools",
+        "minimum_reasoning_class"
+      ],
+      "additionalProperties": false
+    },
+    "resolved_execution": {
+      "type": "object",
+      "properties": {
+        "provider": {
+          "type": "string",
+          "minLength": 1
+        },
+        "model_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "effort": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "worker_mode": {
+          "enum": [
+            "native-parallel",
+            "native-sequential",
+            "role-simulation",
+            "direct"
+          ]
+        },
+        "adapter": {
+          "type": "string",
+          "minLength": 1
+        },
+        "resolution_timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})$"
+        }
+      },
+      "required": [
+        "provider",
+        "model_id",
+        "effort",
+        "worker_mode",
+        "adapter",
+        "resolution_timestamp"
+      ],
+      "additionalProperties": false,
+      "description": "Transient adapter resolution; excluded from portable task identity. Validate availability, effort and capabilities against the adapter registry before dispatch."
+    },
+    "completion_report_schema": {
+      "const": "completion-report.schema.json"
+    }
+  },
+  "required": [
+    "task_id",
+    "agent_identity",
+    "role",
+    "responsibilities",
+    "boundaries",
+    "objective",
+    "inputs",
+    "expected_deliverable",
+    "quality_kpis",
+    "acceptance_criteria",
+    "constraints",
+    "available_tools",
+    "evidence_requirements",
+    "execution_requirements",
+    "completion_report_schema"
+  ],
+  "additionalProperties": false
+}

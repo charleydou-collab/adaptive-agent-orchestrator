@@ -1,0 +1,6 @@
+version: 1
+scope: workspace
+ledger_path: ${WORKSPACE_ROOT}/.codex/adaptive-agent-orchestrator/agent-ledger.json
+ledger_cli: ${AGENTS_HOME}/skills/adaptive-agent-orchestrator/scripts/manage_agent_ledger.py
+write_mode: serialized
+sensitive_content: forbidden

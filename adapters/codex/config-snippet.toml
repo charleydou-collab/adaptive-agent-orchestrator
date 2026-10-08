@@ -1,0 +1,27 @@
+[agents]
+enabled = true
+max_concurrent_threads_per_session = 5
+
+[agents.research-worker]
+description = "Locate authoritative evidence and preserve source traceability."
+config_file = "./agents/research-worker.toml"
+
+[agents.document-analyst]
+description = "Inventory and analyze document structure, questions, and requirements."
+config_file = "./agents/document-analyst.toml"
+
+[agents.data-analyst]
+description = "Validate structured data, formulas, calculations, and preservation constraints."
+config_file = "./agents/data-analyst.toml"
+
+[agents.synthesis-worker]
+description = "Reconcile evidence into a bounded, source-supported deliverable."
+config_file = "./agents/synthesis-worker.toml"
+
+[agents.artifact-producer]
+description = "Create or reproduce the requested file or media from accepted content."
+config_file = "./agents/artifact-producer.toml"
+
+[agents.verification-auditor]
+description = "Independently check deliverables against KPIs and evidence."
+config_file = "./agents/verification-auditor.toml"

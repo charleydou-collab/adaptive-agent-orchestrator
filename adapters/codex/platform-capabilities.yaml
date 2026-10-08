@@ -1,0 +1,25 @@
+{
+  "platform": "codex-local",
+  "adapter_version": "0.1.0",
+  "models": {
+    "discovery": "dynamic",
+    "registry": { "models": [] }
+  },
+  "delegation": {
+    "supported": true,
+    "max_concurrency": 5,
+    "per_worker_model_selection": true,
+    "fallback_mode": "role-simulation"
+  },
+  "reasoning_effort": { "supported_values": [] },
+  "tools": [],
+  "modalities": ["text"],
+  "persistence": {
+    "ledger_supported": true,
+    "scope": "workspace"
+  },
+  "activation": {
+    "mode": "global-bootstrap-and-skill",
+    "guaranteed": true
+  }
+}

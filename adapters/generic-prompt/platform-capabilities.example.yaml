@@ -1,0 +1,25 @@
+{
+  "platform": "generic-instruction-only",
+  "adapter_version": "0.1.0",
+  "models": {
+    "discovery": "static",
+    "registry": { "models": [] }
+  },
+  "delegation": {
+    "supported": false,
+    "max_concurrency": 1,
+    "per_worker_model_selection": false,
+    "fallback_mode": "role-simulation"
+  },
+  "reasoning_effort": { "supported_values": [] },
+  "tools": [],
+  "modalities": ["text"],
+  "persistence": {
+    "ledger_supported": false,
+    "scope": "none"
+  },
+  "activation": {
+    "mode": "system-prompt",
+    "guaranteed": true
+  }
+}

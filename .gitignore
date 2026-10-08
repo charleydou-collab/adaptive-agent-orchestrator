@@ -1,0 +1,25 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+.venv/
+.env
+.env.*
+!.env.example
+*.log
+.idea/
+.vscode/
+
+# Local orchestration state and development records
+.codex/
+.sdd/
+agent-ledger.json
+*.ledger.json
+config.toml.pre-adaptive-orchestrator
+
+# Reproducible build products and temporary files
+dist/
+build/
+*.tmp

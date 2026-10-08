@@ -1,0 +1,196 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Platform capabilities",
+  "type": "object",
+  "properties": {
+    "platform": {
+      "type": "string",
+      "minLength": 1
+    },
+    "adapter_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "models": {
+      "type": "object",
+      "properties": {
+        "discovery": {
+          "enum": [
+            "dynamic",
+            "static"
+          ]
+        },
+        "registry": {
+          "$ref": "model-registry.schema.json"
+        }
+      },
+      "required": [
+        "discovery",
+        "registry"
+      ],
+      "additionalProperties": false
+    },
+    "delegation": {
+      "type": "object",
+      "properties": {
+        "supported": {
+          "type": "boolean"
+        },
+        "max_concurrency": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "per_worker_model_selection": {
+          "type": "boolean"
+        },
+        "fallback_mode": {
+          "enum": [
+            "role-simulation",
+            "direct"
+          ]
+        }
+      },
+      "required": [
+        "supported",
+        "max_concurrency",
+        "per_worker_model_selection",
+        "fallback_mode"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "supported": {
+                "const": false
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "max_concurrency": {
+                "const": 1
+              },
+              "per_worker_model_selection": {
+                "const": false
+              }
+            }
+          }
+        }
+      ]
+    },
+    "reasoning_effort": {
+      "type": "object",
+      "properties": {
+        "supported_values": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "supported_values"
+      ],
+      "additionalProperties": false
+    },
+    "tools": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "modalities": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true,
+      "minItems": 1
+    },
+    "persistence": {
+      "type": "object",
+      "properties": {
+        "ledger_supported": {
+          "type": "boolean"
+        },
+        "scope": {
+          "enum": [
+            "durable",
+            "workspace",
+            "session",
+            "none"
+          ]
+        }
+      },
+      "required": [
+        "ledger_supported",
+        "scope"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "ledger_supported": {
+                "const": false
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "scope": {
+                "const": "none"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "scope": {
+                "enum": [
+                  "durable",
+                  "workspace",
+                  "session"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "activation": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "type": "string",
+          "minLength": 1
+        },
+        "guaranteed": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "mode",
+        "guaranteed"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "platform",
+    "adapter_version",
+    "models",
+    "delegation",
+    "reasoning_effort",
+    "tools",
+    "modalities",
+    "persistence",
+    "activation"
+  ],
+  "additionalProperties": false
+}
