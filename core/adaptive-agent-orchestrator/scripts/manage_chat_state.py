@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import sys
 
+from chat_learning import activation_decision, apply_candidate, forget_lesson
 from chat_state import delete_state, init_state, load_state, update_state
 
 
@@ -40,7 +41,9 @@ def _parser():
             command.add_argument('--expected-revision', type=int, required=True)
         if name in {'apply-capsule', 'propose', 'activate', 'forget', 'compact'}:
             command.add_argument('--payload', required=True)
-        if name in {'reset', 'delete'}:
+        if name == 'propose':
+            command.add_argument('--corroboration-count', type=int, default=1)
+        if name in {'activate', 'reset', 'delete'}:
             command.add_argument('--confirm', action='store_true')
         command.add_argument('--root', required=True)
     return parser
@@ -79,15 +82,19 @@ def _execute(args):
         operation = lambda state: state.update(capsule=payload)
     elif args.command == 'propose':
         def operation(state):
-            if any(item.get('lesson_id') == payload.get('lesson_id') for item in state['lessons']):
-                raise ValueError('duplicate lesson')
-            proposed = dict(payload)
-            proposed['status'] = 'proposed'
-            state['lessons'].append(proposed)
-    elif args.command in {'activate', 'forget'}:
-        target = 'active' if args.command == 'activate' else 'forgotten'
+            decision = activation_decision(payload, state['lessons'], args.corroboration_count)
+            apply_candidate(state, payload, decision)
+    elif args.command == 'activate':
         def operation(state):
-            _find_lesson(state, payload.get('lesson_id'))['status'] = target
+            lesson = _find_lesson(state, payload.get('lesson_id'))
+            if lesson.get('category') == 'factual-correction' and not lesson.get('verified'):
+                raise ValueError('evidence required')
+            if not args.confirm:
+                raise ValueError('confirmation required')
+            lesson['status'] = 'active'
+    elif args.command == 'forget':
+        def operation(state):
+            forget_lesson(state, payload.get('lesson_id'))
     elif args.command == 'compact':
         operation = lambda state: state['episodes'].append(payload)
     else:

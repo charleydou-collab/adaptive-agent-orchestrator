@@ -11,6 +11,8 @@ import tempfile
 import unittest
 from unittest import mock
 
+from tests.test_contracts import candidate as candidate_fixture
+
 ROOT = Path(__file__).resolve().parents[1]
 MODULE = ROOT / 'core/adaptive-agent-orchestrator/scripts/chat_state.py'
 CLI = ROOT / 'core/adaptive-agent-orchestrator/scripts/manage_chat_state.py'
@@ -152,15 +154,20 @@ class ChatStateTests(unittest.TestCase):
             '--payload', '-', payload=json.dumps({'revision': 1, 'summary': 'bounded'}))
         self.assertEqual(code, 0)
         self.assertEqual(state['revision'], 1)
+        learning_candidate = candidate_fixture()
+        learning_candidate['conversation_key'] = hashlib.sha256(
+            b'adapter-a\0conversation-1').hexdigest()
+        learning_candidate['confidence_class'] = 'inferred'
+        learning_candidate['verified'] = False
         code, state = self.cli('propose', *common, '--expected-revision', '1',
-            '--payload', '-', payload=json.dumps({'lesson_id': 'lesson-1', 'status': 'proposed'}))
+            '--payload', '-', payload=json.dumps(learning_candidate))
         self.assertEqual(code, 0)
         code, state = self.cli('activate', *common, '--expected-revision', '2',
-            '--payload', '-', payload=json.dumps({'lesson_id': 'lesson-1'}))
+            '--payload', '-', '--confirm', payload=json.dumps({'lesson_id': 'lesson-candidate-1'}))
         self.assertEqual(code, 0)
         self.assertEqual(state['lessons'][0]['status'], 'active')
         code, state = self.cli('forget', *common, '--expected-revision', '3',
-            '--payload', '-', payload=json.dumps({'lesson_id': 'lesson-1'}))
+            '--payload', '-', payload=json.dumps({'lesson_id': 'lesson-candidate-1'}))
         self.assertEqual(code, 0)
         self.assertEqual(state['lessons'][0]['status'], 'forgotten')
         self.assertEqual(self.cli('compact', *common, '--expected-revision', '4',
