@@ -31,6 +31,8 @@ The platform host remains authoritative for its own native context handling. In 
 - Keep chat learning independent from the operational performance ledger.
 - Degrade honestly when a platform lacks conversation identity, persistence, transcript retrieval, token estimation, or message-list control.
 - Produce separate Codex and ChatGPT web artifacts from one compatible portable core.
+- Publish verified source, documentation, release notes, and v0.2.0 artifacts to the existing GitHub repository.
+- Install the verified Codex distribution and update the existing ChatGPT web plugin without creating a duplicate entry.
 
 ## 3. Non-goals
 
@@ -387,8 +389,52 @@ The release is acceptable when:
 10. Both distribution artifacts pass their capability, privacy, compatibility, and deterministic-build tests.
 11. Existing orchestration, routing, clarification, verification, and scoring behavior remains green.
 12. Documentation clearly distinguishes stored chat knowledge, compiled prompt context, host-native history, and performance scoring.
+13. The verified implementation, documentation, changelog, release notes, and both distribution artifacts are published to the existing GitHub repository.
+14. The Codex distribution is installed only after backing up affected configuration, preserving the primary model and global reasoning-effort setting, and passing post-install verification.
+15. The existing ChatGPT web plugin is updated in place to v0.2.0 when the workspace surface permits it; the deployment must not create a second plugin with the same display name.
+16. Web installation and activation are reported as complete only after the installed manifest version and visible plugin identity are verified. Any required manual Custom Instructions or workspace-owner action is disclosed precisely.
 
-## 17. Implementation sequencing constraints
+## 17. Publication and installation
+
+Publication and installation occur only after the source implementation and both artifacts pass the required tests.
+
+### 17.1 GitHub publication
+
+The release workflow must:
+
+1. update the public architecture, configuration, installation, security, and scoring documentation;
+2. update the changelog and repository front page for v0.2.0;
+3. build deterministic Codex and ChatGPT web artifacts from explicit inventories;
+4. verify that artifacts exclude runtime state, chat learning data, local paths, credentials, caches, and development-only records;
+5. commit the verified implementation and push it to the existing repository;
+6. confirm the repository CI result for the published commit; and
+7. create or update the v0.2.0 GitHub release with checksums and platform-specific installation notes.
+
+GitHub issues associated with the feature remain open until their acceptance criteria are verified. Resolved issues should link to the implementing commit, tests, and release rather than being closed solely because code was written.
+
+### 17.2 Codex installation
+
+The Codex installer must use guarded additive changes, preserve the configured primary model and global reasoning effort, back up affected configuration before editing, and refuse ambiguous merges. Installation verification must confirm:
+
+- the expected core and Codex distribution versions;
+- role and skill discovery;
+- declared conversation-scope capability;
+- safe behavior when no stable conversation identifier is available;
+- chat-state storage permissions and isolation when persistence is enabled;
+- context-compiler and learning-management command behavior; and
+- continued operation of existing clarification, routing, verification, and scoring features.
+
+The installer must not copy test fixtures, repository state, example chat data, or a development ledger into the live installation.
+
+### 17.3 ChatGPT web installation
+
+The web deployment should update the known existing plugin identity in place. Before upload, the package manifest, version, deterministic archive, inventory, and absence of local-only files must be verified. After upload, verification must confirm the visible plugin name, version, description, and supported controls.
+
+If the workspace interface cannot update the existing identity, deployment stops before creating another plugin and asks for user direction. If browser or workspace permissions prevent installation or inspection, the release artifact and exact manual steps are provided, and the deployment is reported as pending rather than complete.
+
+The Custom Instructions bootstrap may be updated to describe v0.2.0 behavior, but it cannot be presented as proof of always-on plugin activation, persistent storage, or native context pruning.
+
+## 18. Implementation sequencing constraints
 
 Implementation planning should keep the following dependency order:
 
@@ -400,5 +446,8 @@ Implementation planning should keep the following dependency order:
 6. Codex packaging and adapter controls.
 7. ChatGPT web fallback packaging and honest declarations.
 8. Migration, documentation, end-to-end tests, and release artifacts.
+9. GitHub publication and CI verification.
+10. Guarded Codex installation and post-install verification.
+11. In-place ChatGPT web plugin update and post-upload verification.
 
 No implementation phase may claim token savings solely from shorter instructions. Measured context-package size is evidence for orchestrator-controlled context only; native host billing or context reduction requires separate host telemetry.
