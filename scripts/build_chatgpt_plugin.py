@@ -13,26 +13,42 @@ COMPATIBILITY_MANIFEST = PROJECT / "adapters" / "chatgpt-web" / "plugin" / ".cod
 CORE = PROJECT / "core" / "adaptive-agent-orchestrator"
 PLUGIN_NAME = "adaptive-agent-orchestrator"
 FIXED_TIME = (2026, 1, 1, 0, 0, 0)
+REFERENCES = ("chat-learning.md", "context-compilation.md", "identity.md", "roles.md",
+    "routing.md", "scoring-policy.md", "task-contract.md", "verification.md")
+SCHEMAS = ("chat-lesson.schema.json", "chat-state-capsule.schema.json",
+    "clarification-request.schema.json", "clarification-response.schema.json",
+    "completion-report.schema.json", "context-audit.schema.json",
+    "context-package.schema.json", "conversation-scope.schema.json",
+    "episode-summary.schema.json", "learning-candidate.schema.json",
+    "learning-reset-request.schema.json", "ledger-event.schema.json",
+    "model-registry.schema.json", "platform-capabilities.schema.json",
+    "retrieval-request.schema.json", "task-contract.schema.json")
 
 
 def source_files():
     yield MANIFEST, f"{PLUGIN_NAME}/plugin.json"
     yield COMPATIBILITY_MANIFEST, f"{PLUGIN_NAME}/.codex-plugin/plugin.json"
     yield CORE / "SKILL.md", f"{PLUGIN_NAME}/skills/{PLUGIN_NAME}/SKILL.md"
-    for folder in ("references", "schemas"):
-        for path in sorted((CORE / folder).glob("*")):
-            if path.is_file():
-                yield path, f"{PLUGIN_NAME}/skills/{PLUGIN_NAME}/{folder}/{path.name}"
+    for name in REFERENCES:
+        yield CORE / "references" / name, f"{PLUGIN_NAME}/skills/{PLUGIN_NAME}/references/{name}"
+    for name in SCHEMAS:
+        yield CORE / "schemas" / name, f"{PLUGIN_NAME}/skills/{PLUGIN_NAME}/schemas/{name}"
 
 
 def build(output):
     manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
     if manifest.get("name") != PLUGIN_NAME:
         raise ValueError("Plugin directory and manifest name must match")
+    compatibility = json.loads(COMPATIBILITY_MANIFEST.read_text(encoding="utf-8"))
+    if compatibility.get("name") != PLUGIN_NAME or compatibility.get("version") != manifest.get("version"):
+        raise ValueError("Compatibility manifest identity or version mismatch")
+    inventory = list(source_files())
+    if len({relative for _, relative in inventory}) != len(inventory):
+        raise ValueError("Duplicate archive path")
     output = Path(output).resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
-        for source, relative in source_files():
+        for source, relative in sorted(inventory, key=lambda item: item[1]):
             info = zipfile.ZipInfo(relative, FIXED_TIME)
             info.compress_type = zipfile.ZIP_DEFLATED
             info.external_attr = 0o100644 << 16

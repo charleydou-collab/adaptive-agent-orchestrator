@@ -18,6 +18,9 @@ htmlcov/
 .sdd/
 agent-ledger.json
 *.ledger.json
+.adaptive-agent-state/
+chat-state/
+*.chat-state.json
 config.toml.pre-adaptive-orchestrator
 
 # Reproducible build products and temporary files

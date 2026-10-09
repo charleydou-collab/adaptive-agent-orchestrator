@@ -35,7 +35,7 @@ class PluginBuildTests(unittest.TestCase):
                 manifest = json.loads(bundle.read("adaptive-agent-orchestrator/plugin.json"))
                 compatibility = json.loads(bundle.read("adaptive-agent-orchestrator/.codex-plugin/plugin.json"))
                 self.assertEqual(manifest["name"], "adaptive-agent-orchestrator")
-                self.assertEqual(manifest["version"], "0.1.3")
+                self.assertEqual(manifest["version"], "0.2.0")
                 self.assertEqual(compatibility["name"], manifest["name"])
                 self.assertEqual(compatibility["version"], manifest["version"])
                 for key, value in manifest["extensions"]["com.openai"]["interface"].items():
@@ -49,6 +49,19 @@ class PluginBuildTests(unittest.TestCase):
                     "adaptive-agent-orchestrator/skills/adaptive-agent-orchestrator/schemas/clarification-response.schema.json",
                     names,
                 )
+                self.assertIn(
+                    "adaptive-agent-orchestrator/skills/adaptive-agent-orchestrator/references/chat-learning.md",
+                    names,
+                )
+                self.assertIn(
+                    "adaptive-agent-orchestrator/skills/adaptive-agent-orchestrator/schemas/context-package.schema.json",
+                    names,
+                )
+                forbidden = ("/.git/", "__pycache__", "/tests/", "agent-ledger.json", "/chat-state/", "/docs/")
+                self.assertFalse(any(any(token in name for token in forbidden) for name in names))
+                content = b"\n".join(bundle.read(name) for name in names)
+                self.assertNotIn(b"/Users/", content)
+                self.assertNotIn(b"adaptive-agent-orchestrator/scripts/", content)
 
     def test_repeated_build_is_byte_identical(self):
         with tempfile.TemporaryDirectory() as directory:

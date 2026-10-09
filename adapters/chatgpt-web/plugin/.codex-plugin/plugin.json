@@ -2,7 +2,7 @@
   "interface": {
     "displayName": "Adaptive Agent Orchestrator",
     "shortDescription": "Adaptive agent routing",
-    "longDescription": "A model-neutral management skill for complex AI work. It interprets outcomes and constraints, keeps simple tasks direct, decomposes larger requests into bounded functional roles, defines measurable task contracts, routes by required context, tools, modalities, reasoning depth, and quality class, and verifies every returned result against KPIs and evidence before integration. Workers can raise structured clarification requests through the management agent, which presents recommended choices plus a custom-response path and routes the answer back to the same task while independent work continues. Low- and medium-cost execution is preferred. Premium or high-cost execution requires an explanation and explicit user approval for the exact proposed model. It supports honest fallback from native parallel workers to sequential workers, temporally separated role simulation, or direct execution according to the host's actual capabilities. The portable package does not provide models, connectors, native subagents, or persistent storage by itself. On standard ChatGPT web surfaces it does not claim per-worker model control or persistent scoring.",
+    "longDescription": "A model-neutral management skill for complex AI work. It compiles bounded task context, keeps simple requests direct, decomposes larger work into functional roles, routes by capabilities and cost, relays structured clarification, and verifies every result against KPIs and evidence. It can learn concise, governed lessons from accepted feedback within the current chat after revision and verification. Low- and medium-cost execution is preferred; premium execution requires an explanation and explicit approval for the exact proposed model. On standard ChatGPT web surfaces, the capsule is in-chat and host-controlled: the plugin does not claim native history pruning, durable private storage, persistent scoring, independent subagents, or per-worker model control unless the host exposes and verifies those capabilities.",
     "category": "Productivity",
     "websiteURL": "https://github.com/charleydou-collab/adaptive-agent-orchestrator",
     "supportURL": "https://github.com/charleydou-collab/adaptive-agent-orchestrator/issues",
@@ -17,8 +17,8 @@
     "developerName": "Workspace upload"
   },
   "name": "adaptive-agent-orchestrator",
-  "version": "0.1.3",
-  "description": "Model-neutral task decomposition, capability routing, KPI verification, and cost-aware orchestration.",
+  "version": "0.2.0",
+  "description": "Model-neutral orchestration with bounded in-chat learning, capability routing, KPI verification, and cost controls.",
   "author": {
     "name": "Workspace upload"
   },

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "adaptive-agent-orchestrator-codex",
+  "version": "0.2.0",
+  "description": "Codex distribution for capability-routed orchestration, chat-scoped learning, bounded context compilation, verification, and scoring.",
+  "coreSkill": "adaptive-agent-orchestrator",
+  "platform": "codex",
+  "runtime": {
+    "language": "python",
+    "minimumVersion": "3.8",
+    "scripts": [
+      "chat_learning.py",
+      "chat_state.py",
+      "compile_context.py",
+      "manage_agent_ledger.py",
+      "manage_chat_state.py",
+      "resolve_model.py"
+    ]
+  }
+}
