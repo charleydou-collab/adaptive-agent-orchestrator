@@ -18,6 +18,14 @@
     "ledger_supported": false,
     "scope": "none"
   },
+  "conversation_context": {
+    "stable_identity": false,
+    "persistence_supported": false,
+    "transcript_retrieval": false,
+    "message_list_control": false,
+    "token_estimation": false,
+    "scope": "none"
+  },
   "activation": {
     "mode": "custom-instructions-plus-plugin",
     "guaranteed": false

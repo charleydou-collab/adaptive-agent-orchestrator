@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Compact task episode summary",
+  "type": "object",
+  "properties": {
+    "episode_id": {"type": "string", "minLength": 1},
+    "conversation_key": {"type": "string", "minLength": 1},
+    "task_id": {"type": "string", "minLength": 1},
+    "task_category": {"type": "string", "minLength": 1},
+    "role_targets": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "topics": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "entities": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "outcome": {"enum": ["accepted", "corrected", "partial", "blocked", "failed"]},
+    "decision_refs": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "lesson_ids": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "source_refs": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "summary": {"type": "string", "minLength": 1},
+    "completed_at": {"type": "string", "minLength": 1}
+  },
+  "required": ["episode_id", "conversation_key", "task_id", "task_category", "role_targets", "topics", "entities", "outcome", "decision_refs", "lesson_ids", "source_refs", "summary", "completed_at"],
+  "additionalProperties": false
+}

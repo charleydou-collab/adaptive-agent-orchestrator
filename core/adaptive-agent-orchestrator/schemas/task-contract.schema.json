@@ -237,6 +237,16 @@
       "minItems": 1,
       "items": {"$ref": "clarification-response.schema.json"}
     },
+    "context_package_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "applicable_lesson_ids": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true,
+      "minItems": 1
+    },
     "completion_report_schema": {
       "const": "completion-report.schema.json"
     }

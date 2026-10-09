@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Explicit chat learning reset request",
+  "type": "object",
+  "properties": {
+    "request_id": {"type": "string", "minLength": 1},
+    "conversation_key": {"type": "string", "minLength": 1},
+    "operation": {"enum": ["reset", "delete"]},
+    "confirm": {"const": true},
+    "requested_at": {"type": "string", "minLength": 1}
+  },
+  "required": ["request_id", "conversation_key", "operation", "confirm", "requested_at"],
+  "additionalProperties": false
+}

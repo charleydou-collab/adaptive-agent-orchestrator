@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Non-sensitive context compilation audit",
+  "type": "object",
+  "properties": {
+    "package_id": {"type": "string", "minLength": 1},
+    "conversation_key": {"type": "string", "minLength": 1},
+    "task_id": {"type": "string", "minLength": 1},
+    "selected_lesson_ids": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "selected_episode_ids": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "selected_recent_turn_refs": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "omissions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {"ref": {"type": "string", "minLength": 1}, "reason_code": {"enum": ["budget", "irrelevant", "superseded", "expired", "unavailable"]}},
+        "required": ["ref", "reason_code"],
+        "additionalProperties": false
+      }
+    },
+    "component_token_estimates": {
+      "type": "object",
+      "properties": {"policy": {"type": "integer", "minimum": 0}, "capsule": {"type": "integer", "minimum": 0}, "lessons": {"type": "integer", "minimum": 0}, "episodes": {"type": "integer", "minimum": 0}, "recent_turns": {"type": "integer", "minimum": 0}},
+      "required": ["policy", "capsule", "lessons", "episodes", "recent_turns"],
+      "additionalProperties": false
+    },
+    "total_estimated_tokens": {"type": "integer", "minimum": 0},
+    "estimate_quality": {"enum": ["exact", "approximate", "unavailable"]},
+    "budget_status": {"enum": ["within-budget", "compressed", "max-budget", "unbounded-override"]},
+    "rehydration_refs": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "fallback_reasons": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true}
+  },
+  "required": ["package_id", "conversation_key", "task_id", "selected_lesson_ids", "selected_episode_ids", "selected_recent_turn_refs", "omissions", "component_token_estimates", "total_estimated_tokens", "estimate_quality", "budget_status", "rehydration_refs", "fallback_reasons"],
+  "additionalProperties": false
+}

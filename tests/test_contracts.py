@@ -19,6 +19,15 @@ NAMES = (
     'clarification-request',
     'clarification-response',
     'ledger-event',
+    'conversation-scope',
+    'chat-state-capsule',
+    'learning-candidate',
+    'chat-lesson',
+    'episode-summary',
+    'retrieval-request',
+    'context-package',
+    'context-audit',
+    'learning-reset-request',
 )
 
 
@@ -96,6 +105,9 @@ def platform():
         'delegation': {'supported': False, 'max_concurrency': 1, 'per_worker_model_selection': False, 'fallback_mode': 'role-simulation'},
         'reasoning_effort': {'supported_values': ['normal']}, 'tools': ['read'], 'modalities': ['text'],
         'persistence': {'ledger_supported': False, 'scope': 'none'},
+        'conversation_context': {'stable_identity': False, 'persistence_supported': False,
+            'transcript_retrieval': False, 'message_list_control': False,
+            'token_estimation': False, 'scope': 'none'},
         'activation': {'mode': 'explicit-invocation', 'guaranteed': False}}
 
 
@@ -167,6 +179,79 @@ def event():
         'timestamp': '2026-10-07T00:00:00Z'}
 
 
+def conversation_scope():
+    return {'adapter': 'adapter-a', 'conversation_id': 'conversation-opaque-1',
+        'persistence_class': 'session', 'storage_ref': 'store-ref-1'}
+
+
+def capsule():
+    return {'conversation_key': 'conversation-key-1', 'revision': 2,
+        'objectives': [{'text': 'Produce concise, sourced answers', 'source_refs': ['turn-1']}],
+        'decisions': [], 'constraints': [{'text': 'Keep learning chat-scoped', 'source_refs': ['turn-2']}],
+        'open_questions': [], 'accepted_facts': [], 'active_preferences': [],
+        'artifact_refs': ['artifact-1'], 'updated_at': '2026-10-10T00:00:00Z'}
+
+
+def candidate():
+    return {'candidate_id': 'candidate-1', 'conversation_key': 'conversation-key-1',
+        'rule': 'Prefer concise answers unless detail is requested.', 'category': 'preference',
+        'task_categories': ['general'], 'role_targets': ['management'],
+        'conditions': ['The user has not requested a detailed explanation.'], 'exceptions': [],
+        'source_refs': ['turn-3'], 'confidence_class': 'explicit', 'risk_class': 'low',
+        'verified': True, 'created_at': '2026-10-10T00:00:00Z'}
+
+
+def lesson():
+    value = candidate()
+    value.pop('candidate_id')
+    value.update({'lesson_id': 'lesson-1', 'status': 'active', 'version': 1,
+        'supersedes': None, 'expires_at': None, 'updated_at': '2026-10-10T00:00:00Z'})
+    return value
+
+
+def episode():
+    return {'episode_id': 'episode-1', 'conversation_key': 'conversation-key-1',
+        'task_id': 'task-1', 'task_category': 'research', 'role_targets': ['management'],
+        'topics': ['backup'], 'entities': ['company documents'], 'outcome': 'accepted',
+        'decision_refs': ['decision-1'], 'lesson_ids': ['lesson-1'], 'source_refs': ['turn-1'],
+        'summary': 'Compared three backup approaches and accepted the hybrid recommendation.',
+        'completed_at': '2026-10-10T00:00:00Z'}
+
+
+def retrieval_request():
+    return {'conversation_key': 'conversation-key-1', 'task_id': 'task-2',
+        'task_category': 'research', 'role': 'management', 'topics': ['backup'],
+        'entities': ['company documents'], 'required_evidence_refs': ['artifact-1'],
+        'lesson_limit': 5, 'episode_limit': 3, 'full_context': False}
+
+
+def context_package():
+    return {'package_id': 'context-1', 'conversation_key': 'conversation-key-1',
+        'audience': 'management', 'task_id': 'task-2', 'capsule_ref': 'capsule:2',
+        'selected_lesson_ids': ['lesson-1'], 'selected_episode_ids': ['episode-1'],
+        'selected_recent_turn_refs': ['turn-4'], 'required_input_refs': ['artifact-1'],
+        'omissions': [{'ref': 'episode-older', 'reason_code': 'budget'}],
+        'component_token_estimates': {'policy': 300, 'capsule': 200, 'lessons': 80,
+            'episodes': 120, 'recent_turns': 250}, 'total_estimated_tokens': 950,
+        'estimate_quality': 'approximate', 'budget_status': 'within-budget',
+        'rehydration_refs': [], 'created_at': '2026-10-10T00:00:00Z'}
+
+
+def context_audit():
+    value = context_package()
+    value.pop('audience')
+    value.pop('capsule_ref')
+    value.pop('required_input_refs')
+    value.pop('created_at')
+    value['fallback_reasons'] = []
+    return value
+
+
+def reset_request():
+    return {'request_id': 'reset-1', 'conversation_key': 'conversation-key-1',
+        'operation': 'reset', 'confirm': True, 'requested_at': '2026-10-10T00:00:00Z'}
+
+
 def compatible(task, models):
     resolved, needs = task['resolved_execution'], task['execution_requirements']
     return any(m['availability'] == 'available' and m['provider'] == resolved['provider']
@@ -194,7 +279,9 @@ class ContractTests(unittest.TestCase):
     def test_valid_examples_and_required_fields(self):
         values = (
             platform(), registry(), contract(), report(), clarification_request(),
-            clarification_response(), event(),
+            clarification_response(), event(), conversation_scope(), capsule(), candidate(),
+            lesson(), episode(), retrieval_request(), context_package(), context_audit(),
+            reset_request(),
         )
         for name, value in zip(NAMES, values):
             self.check(name, value)
@@ -203,6 +290,64 @@ class ContractTests(unittest.TestCase):
                 del broken[key]
                 with self.assertRaises(AssertionError, msg=f'{name}: {key}'):
                     self.check(name, broken)
+
+    def test_chat_contracts_are_closed_and_provider_neutral(self):
+        samples = {
+            'conversation-scope': conversation_scope(), 'chat-state-capsule': capsule(),
+            'learning-candidate': candidate(), 'chat-lesson': lesson(),
+            'episode-summary': episode(), 'retrieval-request': retrieval_request(),
+            'context-package': context_package(), 'context-audit': context_audit(),
+            'learning-reset-request': reset_request(),
+        }
+        for name, value in samples.items():
+            with self.subTest(name=name):
+                self.check(name, value)
+                invalid = copy.deepcopy(value)
+                invalid['unknown_field'] = 'not allowed'
+                with self.assertRaises(AssertionError):
+                    self.check(name, invalid)
+                serialized = json.dumps(self.schemas[name]).lower()
+                for token in ('gpt-', 'claude-', 'gemini-', 'mcp__', 'spawn_agent'):
+                    self.assertNotIn(token, serialized)
+
+    def test_chat_contracts_reject_sensitive_payload_fields(self):
+        for name, value in (
+                ('learning-candidate', candidate()), ('chat-lesson', lesson()),
+                ('episode-summary', episode()), ('context-audit', context_audit())):
+            for field in ('prompt', 'transcript', 'full_output', 'source_documents'):
+                invalid = copy.deepcopy(value)
+                invalid[field] = 'private content'
+                with self.assertRaises(AssertionError, msg=f'{name}: {field}'):
+                    self.check(name, invalid)
+
+    def test_platform_context_capabilities_are_coherent(self):
+        value = platform()
+        self.check('platform-capabilities', value)
+        invalid = copy.deepcopy(value)
+        invalid['conversation_context']['scope'] = 'session'
+        with self.assertRaises(AssertionError):
+            self.check('platform-capabilities', invalid)
+        supported = copy.deepcopy(value)
+        supported['conversation_context'] = {'stable_identity': True,
+            'persistence_supported': True, 'transcript_retrieval': True,
+            'message_list_control': False, 'token_estimation': True, 'scope': 'session'}
+        self.check('platform-capabilities', supported)
+
+    def test_v013_contracts_remain_valid(self):
+        self.check('task-contract', contract())
+        self.check('completion-report', report())
+
+    def test_task_accepts_compiled_context_references(self):
+        value = contract()
+        value['context_package_ref'] = 'context-1'
+        value['applicable_lesson_ids'] = ['lesson-1']
+        self.check('task-contract', value)
+
+    def test_report_accepts_candidates_without_activating_them(self):
+        value = report()
+        value['learning_candidates'] = [candidate()]
+        self.check('completion-report', value)
+        self.assertNotIn('status', value['learning_candidates'][0])
 
     def test_needs_input_report_requires_structured_clarification(self):
         value = report()

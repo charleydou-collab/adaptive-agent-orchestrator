@@ -92,6 +92,11 @@
     },
     "clarification_request": {
       "$ref": "clarification-request.schema.json"
+    },
+    "learning_candidates": {
+      "type": "array",
+      "items": {"$ref": "learning-candidate.schema.json"},
+      "minItems": 1
     }
   },
   "required": [

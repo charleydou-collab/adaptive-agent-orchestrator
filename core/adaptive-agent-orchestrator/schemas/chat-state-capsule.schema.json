@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Bounded chat state capsule",
+  "type": "object",
+  "$defs": {
+    "entry": {
+      "type": "object",
+      "properties": {
+        "text": {"type": "string", "minLength": 1},
+        "source_refs": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true, "minItems": 1}
+      },
+      "required": ["text", "source_refs"],
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "conversation_key": {"type": "string", "minLength": 1},
+    "revision": {"type": "integer", "minimum": 1},
+    "objectives": {"type": "array", "items": {"$ref": "#/$defs/entry"}},
+    "decisions": {"type": "array", "items": {"$ref": "#/$defs/entry"}},
+    "constraints": {"type": "array", "items": {"$ref": "#/$defs/entry"}},
+    "open_questions": {"type": "array", "items": {"$ref": "#/$defs/entry"}},
+    "accepted_facts": {"type": "array", "items": {"$ref": "#/$defs/entry"}},
+    "active_preferences": {"type": "array", "items": {"$ref": "#/$defs/entry"}},
+    "artifact_refs": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "updated_at": {"type": "string", "minLength": 1}
+  },
+  "required": ["conversation_key", "revision", "objectives", "decisions", "constraints", "open_questions", "accepted_facts", "active_preferences", "artifact_refs", "updated_at"],
+  "additionalProperties": false
+}

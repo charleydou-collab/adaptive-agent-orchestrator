@@ -163,6 +163,31 @@
         }
       ]
     },
+    "conversation_context": {
+      "type": "object",
+      "properties": {
+        "stable_identity": {"type": "boolean"},
+        "persistence_supported": {"type": "boolean"},
+        "transcript_retrieval": {"type": "boolean"},
+        "message_list_control": {"type": "boolean"},
+        "token_estimation": {"type": "boolean"},
+        "scope": {"enum": ["durable", "workspace", "session", "none"]}
+      },
+      "required": ["stable_identity", "persistence_supported", "transcript_retrieval", "message_list_control", "token_estimation", "scope"],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {"properties": {"persistence_supported": {"const": false}}},
+          "then": {"properties": {"scope": {"const": "none"}}},
+          "else": {
+            "properties": {
+              "stable_identity": {"const": true},
+              "scope": {"enum": ["durable", "workspace", "session"]}
+            }
+          }
+        }
+      ]
+    },
     "activation": {
       "type": "object",
       "properties": {
@@ -190,6 +215,7 @@
     "tools",
     "modalities",
     "persistence",
+    "conversation_context",
     "activation"
   ],
   "additionalProperties": false

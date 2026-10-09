@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Chat context retrieval request",
+  "type": "object",
+  "properties": {
+    "conversation_key": {"type": "string", "minLength": 1},
+    "task_id": {"type": "string", "minLength": 1},
+    "task_category": {"type": "string", "minLength": 1},
+    "role": {"type": "string", "minLength": 1},
+    "topics": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "entities": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "required_evidence_refs": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "lesson_limit": {"type": "integer", "minimum": 0},
+    "episode_limit": {"type": "integer", "minimum": 0},
+    "full_context": {"type": "boolean"}
+  },
+  "required": ["conversation_key", "task_id", "task_category", "role", "topics", "entities", "required_evidence_refs", "lesson_limit", "episode_limit", "full_context"],
+  "additionalProperties": false
+}

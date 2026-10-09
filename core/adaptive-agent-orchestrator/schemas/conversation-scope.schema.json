@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Conversation storage scope",
+  "type": "object",
+  "properties": {
+    "adapter": {"type": "string", "minLength": 1},
+    "conversation_id": {"type": "string", "minLength": 1},
+    "persistence_class": {"enum": ["durable", "workspace", "session", "none"]},
+    "storage_ref": {"type": ["string", "null"]}
+  },
+  "required": ["adapter", "conversation_id", "persistence_class", "storage_ref"],
+  "additionalProperties": false
+}
