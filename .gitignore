@@ -11,6 +11,7 @@ htmlcov/
 *.log
 .idea/
 .vscode/
+.worktrees/
 
 # Local orchestration state and development records
 .codex/
