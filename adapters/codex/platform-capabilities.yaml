@@ -23,7 +23,11 @@
     "persistence_supported": false,
     "transcript_retrieval": false,
     "message_list_control": false,
-    "token_estimation": false,
+    "token_estimation": true,
+    "context_compilation": true,
+    "original_turn_rehydration": false,
+    "deletion_event_support": false,
+    "learning_scope": "none",
     "scope": "none"
   },
   "activation": {

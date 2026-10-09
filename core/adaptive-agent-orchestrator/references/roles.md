@@ -13,4 +13,10 @@ Reuse broad archetypes while assigning a task-specific role:
 
 Every role states title, mission, expertise, responsibilities, boundaries, objective, inputs, expected deliverable, KPIs, acceptance criteria, constraints, tools, evidence requirements, and execution requirements. A worker completes only its contract and returns the canonical completion report.
 
+A worker receives a role-specific compiled package rather than the entire chat:
+its contract, required sources and upstream results, applicable chat rules, and
+no more than three relevant active lessons. Workers may propose learning
+candidates with opaque evidence references, but cannot activate, score, forget,
+or transfer them. The management agent owns all learning-state mutations.
+
 For a simple document summary, use direct execution unless size or risk makes section work valuable; create a section inventory and verify coverage. For Word/Excel plus knowledge-base reproduction, separate structural inventory, authoritative retrieval, answer synthesis, controlled document editing, and preservation checks. For a knowledge-base-driven image, settle an evidence-backed content specification before invoking the visual producer, then verify labels, entities, relationships, and unsupported additions.

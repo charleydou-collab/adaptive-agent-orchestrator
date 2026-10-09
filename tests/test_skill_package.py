@@ -70,6 +70,34 @@ class SkillPackageTests(unittest.TestCase):
             self.assertIn(directive, self.all_text)
         self.assertIn("silent by default", self.all_text)
 
+    def test_chat_learning_controls_are_portable(self):
+        for directive in (
+            "[no-learn]", "[learn]", "show chat learning", "show proposed lessons",
+            "forget lesson", "reset chat learning", "compact chat context",
+            "[full-context]", "[context-audit]",
+        ):
+            self.assertIn(directive, self.all_text)
+
+    def test_feedback_revision_precedes_learning_and_activation_is_management_only(self):
+        learning = (SKILL_ROOT / "references" / "chat-learning.md").read_text(encoding="utf-8").lower()
+        self.assertRegex(learning, re.compile(r"revise.*verify.*candidate", re.DOTALL))
+        self.assertRegex(learning, r"management agent\s+alone")
+        self.assertIn("workers may propose", learning)
+        self.assertIn("ordinary execution continues without learning", learning)
+        self.assertIn("fail closed", learning)
+
+    def test_context_compilation_limits_workers_and_preserves_mandatory_content(self):
+        context = (SKILL_ROOT / "references" / "context-compilation.md").read_text(encoding="utf-8").lower()
+        for token in ("3,400", "5,900", "five", "three", "capacity blocker", "rehydrat"):
+            self.assertIn(token, context)
+        self.assertIn("required source inputs", context)
+        self.assertIn("never silently", context)
+
+    def test_learning_and_scoring_are_separate(self):
+        scoring = (SKILL_ROOT / "references" / "scoring-policy.md").read_text(encoding="utf-8").lower()
+        for token in ("lesson text", "learning candidate", "chat capsule", "must not"):
+            self.assertIn(token, scoring)
+
     def test_examples_and_operational_boundaries(self):
         for phrase in ("document summary", "word/excel", "knowledge-base-driven image"):
             self.assertIn(phrase, self.all_text)

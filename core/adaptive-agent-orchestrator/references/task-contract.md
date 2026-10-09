@@ -8,6 +8,12 @@ KPIs must be observable. Examples include required-section coverage, source supp
 
 Workers return `../schemas/completion-report.schema.json`: status, deliverable, KPI results, evidence, uncertainties, blockers, and escalation recommendation. Self-reported success is evidence to inspect, not acceptance.
 
+When bounded context is available, attach `context_package_ref` and only the
+`applicable_lesson_ids` needed by that role. A worker completion report may carry
+schema-valid `learning_candidates`; candidates are proposals and never imply
+activation. Keep complete user feedback and document bodies in their authorized
+sources rather than copying them into contracts.
+
 ## Clarification relay
 
 Workers first inspect available evidence and distinguish a material ambiguity from a preference they can safely resolve. A question is material when the answer changes correctness, scope, permissions, risk, or an irreversible action. Workers do not communicate with the user directly.

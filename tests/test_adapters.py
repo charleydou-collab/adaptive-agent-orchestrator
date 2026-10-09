@@ -93,6 +93,39 @@ class AdapterTests(unittest.TestCase):
         self.assertEqual(web["persistence"]["scope"], "none")
         custom = (ADAPTERS / "chatgpt-web" / "custom-instructions-bootstrap.md").read_text(encoding="utf-8").lower()
         self.assertIn("explicitly select", custom)
+        for token in ("bounded in-chat capsule", "host-controlled", "native history", "durable storage"):
+            self.assertIn(token, custom)
+        self.assertRegex(custom, r"cannot (guarantee|claim)[^.]*token")
+
+    def test_codex_chat_learning_requires_stable_identity_and_configured_storage(self):
+        bootstrap = (ADAPTERS / "codex" / "AGENTS.bootstrap.md").read_text(encoding="utf-8").lower()
+        for token in ("stable conversation identity", "configured storage", "manage_chat_state.py", "compile_context.py"):
+            self.assertIn(token, bootstrap)
+        self.assertIn("do not use a global fallback", bootstrap)
+
+    def test_all_adapters_define_chat_learning_controls_and_capability_fallbacks(self):
+        paths = (
+            ADAPTERS / "codex" / "AGENTS.bootstrap.md",
+            ADAPTERS / "chatgpt-web" / "custom-instructions-bootstrap.md",
+            ADAPTERS / "generic-prompt" / "system-prompt.md",
+        )
+        for path in paths:
+            with self.subTest(path=path):
+                text = path.read_text(encoding="utf-8").lower()
+                for token in ("[no-learn]", "[learn]", "[full-context]", "[context-audit]", "reset chat learning"):
+                    self.assertIn(token, text)
+                self.assertIn("capabilit", text)
+
+    def test_platform_context_declarations_do_not_overclaim(self):
+        codex = json.loads((ADAPTERS / "codex" / "platform-capabilities.yaml").read_text())
+        web = json.loads((ADAPTERS / "chatgpt-web" / "platform-capabilities.yaml").read_text())
+        generic = json.loads((ADAPTERS / "generic-prompt" / "platform-capabilities.example.yaml").read_text())
+        self.assertTrue(codex["conversation_context"]["context_compilation"])
+        self.assertTrue(codex["conversation_context"]["token_estimation"])
+        self.assertFalse(web["conversation_context"]["message_list_control"])
+        self.assertFalse(web["conversation_context"]["persistence_supported"])
+        self.assertEqual(web["conversation_context"]["learning_scope"], "in-chat")
+        self.assertFalse(generic["conversation_context"]["context_compilation"])
 
     def test_generic_adapter_claims_only_fallback_capabilities(self):
         declaration = json.loads((ADAPTERS / "generic-prompt" / "platform-capabilities.example.yaml").read_text(encoding="utf-8"))

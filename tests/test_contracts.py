@@ -107,7 +107,9 @@ def platform():
         'persistence': {'ledger_supported': False, 'scope': 'none'},
         'conversation_context': {'stable_identity': False, 'persistence_supported': False,
             'transcript_retrieval': False, 'message_list_control': False,
-            'token_estimation': False, 'scope': 'none'},
+            'token_estimation': False, 'context_compilation': False,
+            'original_turn_rehydration': False, 'deletion_event_support': False,
+            'learning_scope': 'none', 'scope': 'none'},
         'activation': {'mode': 'explicit-invocation', 'guaranteed': False}}
 
 
@@ -330,7 +332,9 @@ class ContractTests(unittest.TestCase):
         supported = copy.deepcopy(value)
         supported['conversation_context'] = {'stable_identity': True,
             'persistence_supported': True, 'transcript_retrieval': True,
-            'message_list_control': False, 'token_estimation': True, 'scope': 'session'}
+            'message_list_control': False, 'token_estimation': True,
+            'context_compilation': True, 'original_turn_rehydration': True,
+            'deletion_event_support': True, 'learning_scope': 'session', 'scope': 'session'}
         self.check('platform-capabilities', supported)
 
     def test_v013_contracts_remain_valid(self):

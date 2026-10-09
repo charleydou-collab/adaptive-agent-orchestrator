@@ -32,6 +32,13 @@ the ledger, including its reason and lesson fields. Closed schema validation
 rejects unknown keys at all levels and bounds text lengths; no structural
 validator can reliably identify sensitive prose disguised as a short reason.
 
+Performance scoring and chat learning are separate systems. Lesson text, a
+learning candidate, user feedback, chat capsule content, context packages, and
+clarification answers must not enter the ledger. A score event cannot activate a
+lesson, and a lesson cannot alter a score. Investigated feedback may independently
+justify both a metadata-only score event and a governed learning candidate, but
+each follows its own evidence, approval, and storage rules.
+
 ## Isolation, freezing, and correction
 
 Identity keys hash logical identity, adapter, platform, execution fingerprint,

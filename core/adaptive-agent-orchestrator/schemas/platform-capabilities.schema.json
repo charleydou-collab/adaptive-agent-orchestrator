@@ -171,9 +171,13 @@
         "transcript_retrieval": {"type": "boolean"},
         "message_list_control": {"type": "boolean"},
         "token_estimation": {"type": "boolean"},
+        "context_compilation": {"type": "boolean"},
+        "original_turn_rehydration": {"type": "boolean"},
+        "deletion_event_support": {"type": "boolean"},
+        "learning_scope": {"enum": ["durable", "workspace", "session", "in-chat", "none"]},
         "scope": {"enum": ["durable", "workspace", "session", "none"]}
       },
-      "required": ["stable_identity", "persistence_supported", "transcript_retrieval", "message_list_control", "token_estimation", "scope"],
+      "required": ["stable_identity", "persistence_supported", "transcript_retrieval", "message_list_control", "token_estimation", "context_compilation", "original_turn_rehydration", "deletion_event_support", "learning_scope", "scope"],
       "additionalProperties": false,
       "allOf": [
         {
@@ -185,6 +189,14 @@
               "scope": {"enum": ["durable", "workspace", "session"]}
             }
           }
+        },
+        {
+          "if": {"properties": {"original_turn_rehydration": {"const": true}}},
+          "then": {"properties": {"transcript_retrieval": {"const": true}}}
+        },
+        {
+          "if": {"properties": {"deletion_event_support": {"const": true}}},
+          "then": {"properties": {"persistence_supported": {"const": true}}}
         }
       ]
     },
