@@ -1,0 +1,11 @@
+version: 1
+scope: conversation
+state_root: ${WORKSPACE_ROOT}/.codex/adaptive-agent-orchestrator/chat-state
+conversation_id: ${CONVERSATION_ID}
+state_cli: ${AGENTS_HOME}/skills/adaptive-agent-orchestrator/scripts/manage_chat_state.py
+compiler_cli: ${AGENTS_HOME}/skills/adaptive-agent-orchestrator/scripts/compile_context.py
+requires_stable_conversation_id: true
+placeholder_resolution: adapter-provided
+missing_identity_behavior: disable-persistence
+write_mode: revision-checked-serialized
+sensitive_content: forbidden

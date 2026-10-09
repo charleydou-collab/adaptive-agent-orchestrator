@@ -39,7 +39,7 @@ class CodexPluginBuildTests(unittest.TestCase):
                 scripts = {PurePosixPath(name).name for name in names if '/scripts/' in name}
                 self.assertEqual(scripts, APPROVED_SCRIPTS)
                 self.assertEqual(len([name for name in names if '/agents/' in name and name.endswith('.toml')]), 6)
-                for required in ('AGENTS.bootstrap.md', 'platform-capabilities.yaml',
+                for required in ('AGENTS.bootstrap.md', 'chat-state-config.example.yaml', 'platform-capabilities.yaml',
                         'config-snippet.toml', 'ledger-config.example.yaml',
                         'model-registry.example.json', 'execution-requirements.example.json'):
                     self.assertIn(f'{ROOT_NAME}/codex/{required}', names)

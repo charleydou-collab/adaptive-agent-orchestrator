@@ -25,7 +25,7 @@ SCHEMAS = ('chat-lesson.schema.json', 'chat-state-capsule.schema.json',
     'retrieval-request.schema.json', 'task-contract.schema.json')
 RUNTIME_SCRIPTS = ('chat_learning.py', 'chat_state.py', 'compile_context.py',
     'manage_agent_ledger.py', 'manage_chat_state.py', 'resolve_model.py')
-ADAPTER_FILES = ('AGENTS.bootstrap.md', 'config-snippet.toml',
+ADAPTER_FILES = ('AGENTS.bootstrap.md', 'chat-state-config.example.yaml', 'config-snippet.toml',
     'execution-requirements.example.json', 'ledger-config.example.yaml',
     'model-registry.example.json', 'platform-capabilities.yaml')
 AGENTS = ('artifact-producer.toml', 'data-analyst.toml', 'document-analyst.toml',
