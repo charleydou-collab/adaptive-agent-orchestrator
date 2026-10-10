@@ -5,7 +5,9 @@ GitHub publication and ChatGPT public-directory publication are separate release
 ## GitHub release checklist
 
 1. Run the full test suite.
-2. Build the ZIP from committed source.
+2. Build both ZIP archives from committed source:
+   `adaptive-agent-orchestrator-codex-0.2.0.zip` and
+   `adaptive-agent-orchestrator-chatgpt-web-0.2.0.zip`.
 3. Build it a second time and compare SHA-256 hashes to confirm reproducibility.
 4. Inspect the archive inventory and confirm it contains one plugin root.
 5. Scan tracked files and the archive for credentials, local paths, private IDs, ledger data, and development records.
@@ -17,10 +19,10 @@ Example build verification:
 
 ```bash
 mkdir -p dist
-python3 scripts/build_chatgpt_plugin.py --output dist/one.zip
-python3 scripts/build_chatgpt_plugin.py --output dist/two.zip
-shasum -a 256 dist/one.zip dist/two.zip
-unzip -l dist/one.zip
+python3 scripts/build_codex_plugin.py --output dist/adaptive-agent-orchestrator-codex-0.2.0.zip
+python3 scripts/build_chatgpt_plugin.py --output dist/adaptive-agent-orchestrator-chatgpt-web-0.2.0.zip
+shasum -a 256 dist/adaptive-agent-orchestrator-*-0.2.0.zip
+unzip -l dist/adaptive-agent-orchestrator-chatgpt-web-0.2.0.zip
 ```
 
 ## Public ChatGPT submission checklist
@@ -59,11 +61,16 @@ Public listing fields belong under `extensions.com.openai.interface`:
 
 Do not claim these fields are complete merely because documentation drafts exist in the repository.
 
-## Release notes for 0.1.0
+## Release notes for 0.2.0
 
 Suggested portal release notes:
 
-> Initial release of a model-neutral management skill for bounded task decomposition, capability-based routing, KPI contracts, structured completion reports, verification and repair, honest platform fallback, and optional local performance scoring on supported adapters.
+> Adds chat-scoped feedback learning, bounded context compilation, conversation-isolated state, dual Codex and ChatGPT web distributions, and a guarded Codex upgrade while preserving capability-based routing, premium approval, clarification, KPI verification, and separate performance scoring.
+
+The GitHub release should attach both archives plus SHA-256 checksums. Verify CI
+for the published commit before marking the release complete. Updating the web
+plugin must target the existing plugin identity; if the workspace cannot update it
+in place, stop before creating a duplicate and provide manual instructions.
 
 ## Known publication boundary
 

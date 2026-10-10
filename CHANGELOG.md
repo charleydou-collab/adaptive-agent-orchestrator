@@ -2,6 +2,37 @@
 
 All notable changes are documented here. Versions follow Semantic Versioning.
 
+## [0.2.0] - 2026-10-10
+
+### Added
+
+- Closed schemas for conversation scope, capsules, learning candidates, lessons,
+  episodes, retrieval requests, compiled packages, audits, and reset requests.
+- Conversation-isolated local state with derived filenames, private permissions,
+  expected-revision checks, corrupt-state preservation, and atomic replacement.
+- Governed feedback learning with evidence gates, confirmation boundaries,
+  conflict supersession, expiration, forgetting, and management-only activation.
+- Deterministic bounded context compilation with normal and maximum component
+  budgets, role-specific lesson limits, rehydration references, and blockers when
+  mandatory content cannot fit.
+- Separate deterministic Codex and ChatGPT web plugin archives.
+- Guarded Codex v0.1.3-to-v0.2.0 upgrade with non-overwriting backups and runtime-state preservation.
+
+### Changed
+
+- The shared core now compiles request-time context before decomposition and runs
+  learning only after the affected result has been revised and verified.
+- ChatGPT web uses an honest bounded in-chat fallback and does not claim durable
+  private storage, native history pruning, or guaranteed token reduction.
+- Performance scoring is explicitly isolated from lesson, feedback, capsule, and
+  context-package content.
+
+### Security
+
+- Added defenses and guidance for cross-chat leakage, path traversal-looking
+  identifiers, stale revisions, corrupt records, feedback prompt injection,
+  secret capture, and unsupported capability claims.
+
 ## [0.1.3] - 2026-10-08
 
 ### Added

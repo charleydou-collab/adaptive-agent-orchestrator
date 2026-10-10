@@ -11,6 +11,12 @@ BUILDER = ROOT / "scripts" / "build_chatgpt_plugin.py"
 
 
 class PluginBuildTests(unittest.TestCase):
+    def test_release_documentation_uses_v020_web_artifact_name(self):
+        readme = (ROOT / 'README.md').read_text(encoding='utf-8')
+        publishing = (ROOT / 'docs/PUBLISHING.md').read_text(encoding='utf-8')
+        name = 'adaptive-agent-orchestrator-chatgpt-web-0.2.0.zip'
+        self.assertIn(name, readme)
+        self.assertIn(name, publishing)
     def test_builds_one_self_contained_plugin(self):
         with tempfile.TemporaryDirectory() as directory:
             archive = Path(directory) / "plugin.zip"

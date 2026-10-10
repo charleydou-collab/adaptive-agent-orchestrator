@@ -34,6 +34,21 @@ The installer:
 
 The installer does not change the main `model` or `model_reasoning_effort`. Per-worker model names are intentionally absent from the bundled role definitions. The runtime should resolve available targets from verified capabilities.
 
+### Guarded upgrade from v0.1.3
+
+```bash
+python3 scripts/install_codex.py --upgrade \
+  --codex-home "$HOME/.codex" \
+  --agents-home "$HOME/.agents"
+```
+
+Upgrade mode requires a complete known v0.1.3 skill, all six managed roles, one
+marked bootstrap block, and the exact managed agent configuration. It refuses an
+ambiguous partial installation. The installer preserves `model` and
+`model_reasoning_effort` byte-for-byte, creates a non-overwriting backup of each
+affected configuration file, replaces only managed files, and leaves existing
+ledger and chat-state directories untouched.
+
 ### Manual merge
 
 If `[agents]` already exists, merge [`config-snippet.toml`](../adapters/codex/config-snippet.toml) manually. Preserve existing role names and paths, and resolve collisions explicitly. Copy the core skill and only the role files you intend to register.
@@ -91,13 +106,26 @@ Use [`ledger-config.example.yaml`](../adapters/codex/ledger-config.example.yaml)
 
 The orchestrator must serialize writers. Atomic replacement protects against partial JSON writes but does not lock out concurrent processes.
 
+## Conversation state and context compiler
+
+[`chat-state-config.example.yaml`](../adapters/codex/chat-state-config.example.yaml)
+uses `${WORKSPACE_ROOT}`, `${AGENTS_HOME}`, and adapter-provided
+`${CONVERSATION_ID}` as conventions. The YAML and CLI do not implicitly expand
+them. Persistence is enabled only after the adapter supplies a stable conversation
+identity and configured storage; otherwise it is disabled without a global fallback.
+
+State files are private, use derived 64-hex filenames, and require an expected
+revision for every mutation. Reset and deletion require confirmation. The compiler
+uses approximate deterministic estimates unless a verified provider estimator is
+available. See [Chat learning](CHAT_LEARNING.md) for budgets and controls.
+
 ## ChatGPT web adapter
 
 ### Build
 
 ```bash
 python3 scripts/build_chatgpt_plugin.py \
-  --output dist/adaptive-agent-orchestrator.zip
+  --output dist/adaptive-agent-orchestrator-chatgpt-web-0.2.0.zip
 ```
 
 The archive has one root directory and includes only:
@@ -116,7 +144,7 @@ It excludes the local ledger script because ordinary ChatGPT web plugins do not 
 3. Explicitly select `@Adaptive Agent Orchestrator` for work where reliable activation matters.
 4. Use `[audit]` to verify the actual fallback mode and exposed controls.
 
-Custom Instructions influence default behavior but do not guarantee that a particular plugin, model, tool, or subagent will run.
+Custom Instructions influence default behavior but do not guarantee that a particular plugin, model, tool, or subagent will run. Host-native history, retention, and deletion are host-controlled. The skills-only web adapter cannot guarantee native token reduction or durable storage; its capsule exists only in the conversation state the host supplies.
 
 ## Generic adapter
 
@@ -132,6 +160,11 @@ If the platform exposes no workers, use temporally separated role simulation. If
 | `[audit]` | Requests role, routing, KPI, fallback, verification, persistence, and score-event details |
 | `[no-score-update]` | Records a frozen event only when a ledger is available; otherwise performs no score mutation |
 | `show agent scorecard` | Displays only ledger metadata accessible on the active platform |
+| `[no-learn]` / `[learn]` | Suppress learning or analyze qualifying feedback after revision and verification |
+| `show chat learning` / `show proposed lessons` | Inspect active and proposed current-chat lessons |
+| `forget lesson <id>` / `reset chat learning` | Deactivate one lesson or explicitly confirm a chat-only reset |
+| `compact chat context` | Regenerate the bounded capsule and episode index |
+| `[full-context]` / `[context-audit]` | Request broader authorized retrieval or inspect safe selection metadata |
 
 ## Uninstallation
 

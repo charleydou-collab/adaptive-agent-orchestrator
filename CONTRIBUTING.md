@@ -22,6 +22,10 @@ python3 -m unittest discover -s tests -v
 - Do not add coercive, anthropomorphic, consciousness, fear, suffering, permanence, or death framing to operational identities or scoring.
 - Do not add secrets, local paths, private IDs, ledgers, source content, or full outputs to fixtures.
 - Keep the plugin archive deterministic and based on an explicit inventory.
+- Preserve exact conversation isolation, revision checks, lesson/score separation,
+  mandatory-context retention, and honest web capability fallbacks.
+- Update both distribution inventories intentionally; never add executable local
+  scripts to the ChatGPT web archive.
 - Update technical documentation and `CHANGELOG.md` with user-visible behavior changes.
 
 ## Tests
@@ -30,8 +34,10 @@ Run:
 
 ```bash
 python3 -m unittest discover -s tests -v
-python3 scripts/build_chatgpt_plugin.py --output /tmp/adaptive-agent-orchestrator.zip
-unzip -t /tmp/adaptive-agent-orchestrator.zip
+python3 scripts/build_codex_plugin.py --output /tmp/adaptive-agent-orchestrator-codex-0.2.0.zip
+python3 scripts/build_chatgpt_plugin.py --output /tmp/adaptive-agent-orchestrator-chatgpt-web-0.2.0.zip
+unzip -t /tmp/adaptive-agent-orchestrator-codex-0.2.0.zip
+unzip -t /tmp/adaptive-agent-orchestrator-chatgpt-web-0.2.0.zip
 ```
 
 For builder changes, create two archives from the same tree and verify identical SHA-256 hashes.

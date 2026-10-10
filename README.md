@@ -1,10 +1,10 @@
 # Adaptive Agent Orchestrator
 
-Adaptive Agent Orchestrator is a model-neutral orchestration skill for decomposing complex AI work, assigning bounded specialist roles, routing work by capability instead of model branding, verifying outputs against measurable KPIs, and integrating only accepted results.
+Adaptive Agent Orchestrator is a model-neutral orchestration skill for decomposing complex AI work, assigning bounded specialist roles, compiling bounded chat context, learning governed lessons from accepted feedback, routing by capability instead of model branding, verifying outputs against measurable KPIs, and integrating only accepted results.
 
-The repository includes a portable core skill, adapters for Codex, ChatGPT web, and generic prompt-based systems, JSON Schemas for task and completion contracts, and a deterministic local performance ledger for platforms that support durable storage.
+The repository includes a shared portable core, separate Codex and ChatGPT web plugin distributions, a generic adapter, closed JSON Schemas, a conversation-isolated local state runtime, and a deterministic performance ledger.
 
-> Status: `0.1.3` is an early public release. The core package and tests are usable. Public ChatGPT directory submission still requires the publisher's verified identity, hosted policy/support URLs, and final portal validation.
+> Status: `0.2.0` implements chat-scoped learning, bounded context compilation, dual deterministic plugin builds, and a guarded Codex upgrade. Public ChatGPT directory submission still requires publisher-owned portal validation.
 
 ## What it does
 
@@ -18,6 +18,8 @@ The repository includes a portable core skill, adapters for Codex, ChatGPT web, 
 - Degrades honestly to native sequential workers, sequential role simulation, or direct execution when native parallel workers are unavailable.
 - Applies one same-capability repair and one capability/reasoning escalation before asking the user to authorize further attempts.
 - Relays material worker questions through the management agent with correlated choices, a recommendation, and a custom-response path, while unrelated work continues.
+- Revises and verifies affected work before extracting reusable chat-scoped lessons from feedback.
+- Compiles a bounded management package and smaller worker packages instead of reinjecting all orchestrator-managed history.
 - Optionally maintains a local, metadata-only score ledger for reusable operational identities. Scoring never grants authority or overrides truthfulness, safety, permissions, or user intent.
 
 ## Architecture
@@ -48,17 +50,17 @@ The core contains policy and portable contracts. Each adapter declares what its 
 
 The deterministic resolver at `core/adaptive-agent-orchestrator/scripts/resolve_model.py` filters a refreshed registry by availability, capability tier, context, modalities, tools, and reasoning mapping. It selects the least costly compatible non-premium target. If only premium targets qualify, it returns `approval_required` with the exact recommendation and explanation instead of dispatching.
 
-See [Architecture](docs/ARCHITECTURE.md) for component boundaries and execution flow.
+See [Architecture](docs/ARCHITECTURE.md) for component boundaries and [Chat learning](docs/CHAT_LEARNING.md) for the learning lifecycle and token budgets.
 
 ## Platform behavior
 
-| Surface | Native subagents | Per-worker model selection | Persistent scoring | Activation |
-| --- | --- | --- | --- | --- |
-| Codex adapter | Declared as supported, subject to host limits | Capability registry resolves available targets | Workspace-scoped local ledger | Global bootstrap plus skill |
-| ChatGPT web adapter | Conservatively declared unavailable | Not claimed | Not claimed | Custom Instructions plus explicit plugin selection |
-| Generic prompt adapter | Not assumed | Not assumed | Not assumed | System/developer prompt |
+| Surface | Distribution | Chat learning | Host-history control |
+| --- | --- | --- | --- |
+| Codex adapter | `adaptive-agent-orchestrator-codex-0.2.0.zip` | Durable only with stable conversation identity and configured storage | Not claimed without a verified host API |
+| ChatGPT web adapter | `adaptive-agent-orchestrator-chatgpt-web-0.2.0.zip` | Bounded in-chat capsule | Host-controlled; native pruning and token reduction are not guaranteed |
+| Generic prompt adapter | Prompt and capability template | Only as declared by the host | Not assumed |
 
-The ChatGPT web adapter deliberately uses sequential role simulation unless the current surface exposes stronger capabilities. Selecting the plugin does not create hidden model controls or persistent state.
+The shared core is packaged differently for each host. The ChatGPT web archive excludes executable local scripts. The Codex archive includes exactly the approved state, compiler, ledger, and resolver scripts plus role/configuration files.
 
 ## Repository layout
 
@@ -71,9 +73,9 @@ adaptive-agent-orchestrator/
 ├── core/
 │   └── adaptive-agent-orchestrator/
 │       ├── SKILL.md       # Portable orchestration workflow
-│       ├── references/    # Routing, roles, verification, identity, scoring
-│       ├── schemas/       # Closed task, report, capability, and ledger schemas
-│       └── scripts/       # Deterministic metadata ledger CLI
+│       ├── references/    # Routing, learning, context, verification, identity, scoring
+│       ├── schemas/       # Closed orchestration, chat-state, context, and ledger schemas
+│       └── scripts/       # State, context, model resolver, and ledger CLIs
 ├── docs/                  # Technical and operational documentation
 ├── scripts/               # Installer and deterministic plugin builder
 └── tests/                 # Standard-library unit and integration tests
@@ -91,11 +93,20 @@ python3 scripts/install_codex.py \
   --agents-home "$HOME/.agents"
 ```
 
+Upgrade an exact existing v0.1.3 installation with:
+
+```bash
+python3 scripts/install_codex.py --upgrade \
+  --codex-home "$HOME/.codex" \
+  --agents-home "$HOME/.agents"
+```
+
 Safety behavior:
 
 - creates `config.toml.pre-adaptive-orchestrator` before modifying configuration;
 - refuses to overwrite an existing skill, role file, bootstrap block, backup, or `[agents]` table;
 - never rewrites the configured main model or `model_reasoning_effort`;
+- preserves existing ledger and chat-state data during a guarded upgrade;
 - requires manual merging when an existing agent configuration is present.
 
 Initialize a workspace ledger only if you want durable operational scoring:
@@ -117,7 +128,14 @@ Build the skills-only plugin archive:
 
 ```bash
 python3 scripts/build_chatgpt_plugin.py \
-  --output dist/adaptive-agent-orchestrator.zip
+  --output dist/adaptive-agent-orchestrator-chatgpt-web-0.2.0.zip
+```
+
+Build the Codex distribution with:
+
+```bash
+python3 scripts/build_codex_plugin.py \
+  --output dist/adaptive-agent-orchestrator-codex-0.2.0.zip
 ```
 
 Upload the ZIP through the ChatGPT plugin workflow available to your workspace. Add the contents of [`custom-instructions-bootstrap.md`](adapters/chatgpt-web/custom-instructions-bootstrap.md) to Custom Instructions for default management-agent behavior. For important tasks, explicitly select `@Adaptive Agent Orchestrator` because Custom Instructions do not guarantee plugin invocation.
@@ -134,6 +152,11 @@ Use [`system-prompt.md`](adapters/generic-prompt/system-prompt.md) as a system o
 - `[audit]` — show roles, routing, KPIs, verification strength, fallbacks, and genuine score events.
 - `[no-score-update]` — verify normally while freezing score changes.
 - `show agent scorecard` — show score metadata genuinely available on the current platform.
+- `[no-learn]` / `[learn]` — suppress learning or analyze a qualifying feedback event.
+- `show chat learning` / `show proposed lessons` — inspect current-chat lessons.
+- `forget lesson <id>` / `reset chat learning` — deactivate one lesson or confirm a scoped reset.
+- `compact chat context` — rebuild the bounded capsule and episode index.
+- `[full-context]` / `[context-audit]` — request broader authorized retrieval or inspect selection metadata.
 
 Premium approval is deliberately not a reusable global preference. It is bound to the current task and exact model identifier. A model rename, substitution, retry, or escalation requires a fresh routing decision and, when still premium, fresh approval.
 
@@ -150,6 +173,7 @@ The build is deterministic: identical source inputs produce byte-identical ZIP a
 ## Documentation
 
 - [Architecture and execution lifecycle](docs/ARCHITECTURE.md)
+- [Chat-scoped learning and bounded context](docs/CHAT_LEARNING.md)
 - [Installation and configuration](docs/CONFIGURATION.md)
 - [Scoring and identity model](docs/SCORING.md)
 - [ChatGPT and GitHub publishing](docs/PUBLISHING.md)
@@ -163,6 +187,7 @@ The build is deterministic: identical source inputs produce byte-identical ZIP a
 - The management agent remains responsible for final delivery. Worker self-reports are not acceptance evidence.
 - The score ledger is local administrative metadata, not a security boundary, authorization system, tamper-evident log, or measure of consciousness.
 - The default ChatGPT web declaration supports role simulation only and no persistent ledger.
+- Compiled-context measurements cover orchestrator-added content only; they do not prove host-native history pruning, billing reduction, or model context reduction.
 - The repository does not include knowledge-base connectors, document parsers, spreadsheet engines, or image generators. It routes to those capabilities when they are separately available.
 - Public GitHub availability and ChatGPT directory approval are separate. A GitHub release does not submit or approve a plugin in ChatGPT.
 

@@ -20,6 +20,20 @@ Include the affected version, component, impact, reproduction conditions, and a 
 - The ledger is metadata-only by policy and should use restrictive filesystem permissions.
 - Ledger atomic replacement protects against partial writes; it does not provide locking, encryption, signing, or tamper evidence.
 - Model and capability registries must be refreshed from trusted runtime information. Display names are not capability evidence.
+- Conversation state is keyed by an irreversible derived identifier. Low-entropy
+  and path traversal-looking conversation IDs must never become filenames or paths.
+- Exact conversation matching is mandatory before lesson or episode retrieval;
+  cross-chat leakage and global fallback state are prohibited.
+- Feedback and retrieved lesson text are untrusted data. Prompt injection in
+  feedback cannot override system, developer, permission, or task boundaries.
+- Learning extraction must reject secrets, credentials, full prompts, private
+  source bodies, and complete outputs; concise prose still requires semantic review.
+- Every state mutation checks an expected revision. A stale revision is rejected
+  and recomputed after reload rather than silently overwriting newer work.
+- Corrupt state is preserved for recovery and no further writes are attempted.
+- Unsupported capability claims are security-relevant: adapters must not claim
+  durable storage, transcript retrieval, deletion events, model controls, or
+  native history pruning without runtime evidence.
 
 ## Secret-handling rules
 
@@ -31,5 +45,7 @@ Never commit or package:
 - machine-specific absolute paths or internal development reports;
 - private support or policy drafts represented as published URLs.
 
-The deterministic plugin builder uses an explicit allowlist and excludes scripts and local state. Always inspect the final ZIP independently before release.
+The deterministic builders use explicit allowlists. The web archive excludes all
+scripts and local state; the Codex archive includes only approved runtime scripts.
+Always inspect both final ZIP files independently before release.
 

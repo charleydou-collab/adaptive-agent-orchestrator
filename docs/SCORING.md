@@ -45,6 +45,15 @@ Each event must conform to `ledger-event.schema.json`. Store only compact metada
 
 `verified: true` means a verifier inspected the referenced evidence. It is an attestation, not a digital signature.
 
+## Separation from chat learning
+
+Performance scores and chat lessons are independent. Never place user feedback,
+learning candidates, lesson text, capsule content, context packages, or
+clarification answers in the ledger. A score cannot activate, confirm, transfer,
+or suppress a lesson. A lesson cannot reward, deduct, promote, restrict, or retire
+an identity. The same investigated outcome may justify separate events in both
+systems only when each passes its own evidence and governance rules.
+
 ## Freeze, correction, equivalence, retirement, and reset
 
 - `[no-score-update]` maps to `score_update_mode: freeze`. The proposed event remains auditable, but score and retirement status do not change.

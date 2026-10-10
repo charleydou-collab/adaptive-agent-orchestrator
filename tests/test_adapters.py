@@ -9,6 +9,41 @@ ADAPTERS = ROOT / "adapters"
 
 
 class AdapterTests(unittest.TestCase):
+    def test_v020_public_documentation_covers_dual_release_and_learning_boundaries(self):
+        readme = (ROOT / 'README.md').read_text(encoding='utf-8').lower()
+        configuration = (ROOT / 'docs/CONFIGURATION.md').read_text(encoding='utf-8').lower()
+        architecture = (ROOT / 'docs/ARCHITECTURE.md').read_text(encoding='utf-8').lower()
+        publishing = (ROOT / 'docs/PUBLISHING.md').read_text(encoding='utf-8').lower()
+        security = (ROOT / 'SECURITY.md').read_text(encoding='utf-8').lower()
+        learning_path = ROOT / 'docs/CHAT_LEARNING.md'
+        self.assertTrue(learning_path.is_file())
+        learning = learning_path.read_text(encoding='utf-8').lower()
+        self.assertIn('0.2.0', readme)
+        self.assertNotIn('status: `0.1.3`', readme)
+        for artifact in ('adaptive-agent-orchestrator-codex-0.2.0.zip',
+                'adaptive-agent-orchestrator-chatgpt-web-0.2.0.zip'):
+            self.assertIn(artifact, readme)
+            self.assertIn(artifact, publishing)
+        self.assertIn('docs/chat_learning.md', readme)
+        for token in ('host-native history', 'compiled context', 'lesson', 'performance score'):
+            self.assertIn(token, architecture + learning)
+        for token in ('host-controlled', 'cannot guarantee native token reduction', 'durable storage'):
+            self.assertIn(token, configuration)
+        for token in ('--upgrade', 'model_reasoning_effort', 'byte-for-byte', 'non-overwriting backup'):
+            self.assertIn(token, configuration)
+        for token in ('cross-chat', 'path traversal', 'prompt injection', 'stale revision',
+                'corrupt state', 'unsupported capability'):
+            self.assertIn(token, security)
+
+    def test_documented_chat_controls_match_core_skill(self):
+        readme = (ROOT / 'README.md').read_text(encoding='utf-8').lower()
+        skill = (ROOT / 'core/adaptive-agent-orchestrator/SKILL.md').read_text(encoding='utf-8').lower()
+        controls = ('[no-learn]', '[learn]', 'show chat learning', 'show proposed lessons',
+            'forget lesson', 'reset chat learning', 'compact chat context',
+            '[full-context]', '[context-audit]')
+        for control in controls:
+            self.assertIn(control, readme)
+            self.assertIn(control, skill)
     def test_required_adapter_files(self):
         required = (
             "codex/AGENTS.bootstrap.md",

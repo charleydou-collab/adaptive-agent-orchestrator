@@ -16,6 +16,8 @@ The design optimizes cost only after mandatory quality requirements are satisfie
 - `routing.md` defines capability tiers, reasoning classes, modality routing, fallback order, and concurrency limits.
 - `task-contract.md` defines the boundary between management and worker execution.
 - `verification.md` defines acceptance, repair, escalation, and audit visibility.
+- `chat-learning.md` defines feedback qualification, lesson activation, conflict, and failure boundaries.
+- `context-compilation.md` defines bounded selection, budgets, worker isolation, and rehydration.
 - `identity.md` and `scoring-policy.md` define operational continuity and the optional performance ledger.
 
 ### Portable schemas
@@ -31,6 +33,11 @@ All schemas reject unknown fields with `additionalProperties: false` where the c
 | `platform-capabilities.schema.json` | Runtime delegation, reasoning, tool, modality, persistence, and activation declarations |
 | `model-registry.schema.json` | Provider-specific targets and their verified capabilities, costs, contexts, modalities, tools, and effort mappings |
 | `ledger-event.schema.json` | Metadata-only, evidence-attested score events and execution fingerprints |
+| `conversation-scope.schema.json` | Adapter and opaque conversation storage scope |
+| `chat-state-capsule.schema.json` | Bounded objectives, decisions, constraints, facts, preferences, and artifact references |
+| `learning-candidate.schema.json` / `chat-lesson.schema.json` | Proposed and governed conversation-scoped lessons |
+| `episode-summary.schema.json` / `retrieval-request.schema.json` | Compact completed work and deterministic retrieval input |
+| `context-package.schema.json` / `context-audit.schema.json` | Selected IDs, budgets, omissions, estimates, and rehydration metadata |
 
 `resolved_execution` is transient adapter output. It records the provider, concrete model identifier, effort, worker mode, adapter, and resolution time, but it does not change the portable task identity.
 
@@ -50,19 +57,38 @@ Adapters resolve abstract requirements into available runtime behavior.
 
 `manage_agent_ledger.py` is a Python standard-library CLI. It validates closed event data, derives scoped identity keys, applies bounded score changes, and writes through a private same-directory temporary file followed by `fsync` and atomic replacement.
 
+`chat_state.py` and `manage_chat_state.py` maintain private revisioned state keyed
+by a SHA-256 derivation of adapter and conversation identity. `chat_learning.py`
+governs candidates and lessons. `compile_context.py` performs deterministic
+standard-library ranking, estimation, eviction, and audit generation.
+
+## State and context boundaries
+
+Host-native history, compiled context, lessons, and performance scores are separate
+layers. The host decides which native messages enter the model. The orchestrator
+controls only its compiled context package. Lessons are concise rules scoped to one
+conversation. Performance scores are metadata-only routing history and cannot
+activate lessons. No context-size measurement is a claim about host billing.
+
+The repository builds two artifacts from the shared core. The Codex distribution
+includes approved local runtime scripts and configuration templates. The ChatGPT
+web distribution is skills-only and excludes executable scripts and runtime state.
+
 ## Execution lifecycle
 
 1. **Interpret** — determine the outcome, deliverables, source boundaries, permissions, risks, and available platform capabilities.
-2. **Decompose** — keep simple tasks direct; otherwise create bounded dependency-safe tasks.
-3. **Contract** — assign a role and define responsibilities, boundaries, deliverable, KPIs, acceptance criteria, tools, constraints, and evidence requirements.
-4. **Resolve** — select the least expensive available execution satisfying capability tier, context, modality, tool, reasoning, and quality requirements.
-5. **Execute** — run independent work concurrently within effective limits and dependent work sequentially.
-6. **Clarify** — when a material ambiguity remains, validate the worker's structured `needs-input` request, continue independent branches, ask the user with recommended choices plus a custom response, and correlate the answer back to the same task.
-7. **Report** — require a structured completion report from each worker or simulated role.
-8. **Verify** — inspect every KPI and its evidence in a distinct verification pass.
-9. **Repair or escalate** — allow one same-tier correction, then one capability/reasoning escalation. Further attempts require user direction.
-10. **Integrate** — combine only accepted results into the final deliverable.
-11. **Record** — if durable scoring is configured and not frozen, append one verified metadata event after attribution. Clarification content is never ledger data.
+2. **Compile context** — load only same-chat state, relevant active lessons, required sources, recent turns, and episodes within budget.
+3. **Decompose** — keep simple tasks direct; otherwise create bounded dependency-safe tasks.
+4. **Contract** — assign a role and define responsibilities, boundaries, deliverable, KPIs, acceptance criteria, tools, constraints, and evidence requirements.
+5. **Resolve** — select the least expensive available execution satisfying capability tier, context, modality, tool, reasoning, and quality requirements.
+6. **Execute** — run independent work concurrently within effective limits and dependent work sequentially.
+7. **Clarify** — when a material ambiguity remains, validate the worker's structured `needs-input` request, continue independent branches, ask the user with recommended choices plus a custom response, and correlate the answer back to the same task.
+8. **Report** — require a structured completion report from each worker or simulated role.
+9. **Verify** — inspect every KPI and its evidence in a distinct verification pass.
+10. **Repair or escalate** — allow one same-tier correction, then one capability/reasoning escalation. Further attempts require user direction.
+11. **Integrate** — combine only accepted results into the final deliverable.
+12. **Learn when qualified** — after accepted feedback, revise and verify before proposing and governing lessons.
+13. **Record separately** — if durable scoring is configured and not frozen, append one verified metadata event after attribution. Clarification and learning content are never ledger data.
 
 ## Routing model
 
