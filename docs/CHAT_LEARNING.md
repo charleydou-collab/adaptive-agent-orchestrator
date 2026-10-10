@@ -41,9 +41,11 @@ preferences and high-impact rules require confirmation.
 ## Context budgets
 
 The normal historical package budget is approximately 3,400 tokens: policy 600,
-capsule 500, lessons 300, episodes/evidence 800, and recent turns 1,200. The
+capsule 500, lessons 300, episode summaries 800, and recent turns 1,200. The
 maximum is approximately 5,900: 1,000, 800, 600, 1,500, and 2,000. Required task
-sources have a separate budget. A worker receives at most three lessons; the
+sources have a separate 8,000-token normal budget and 32,000-token full-context
+ceiling; overflow blocks explicitly without consuming the historical budget. A
+worker receives at most three lessons; the
 management agent normally receives at most five.
 
 When optional content is too large, older episodes are removed before optional

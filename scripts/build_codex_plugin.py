@@ -51,9 +51,11 @@ def build(output):
     manifest = json.loads(MANIFEST.read_text(encoding='utf-8'))
     if manifest.get('name') != ROOT_NAME or manifest.get('version') != '0.2.0':
         raise ValueError('Codex manifest identity or version mismatch')
-    if manifest.get('coreSkill') != CORE_SKILL:
+    extension = manifest.get('extensions', {}).get(
+        'org.suncbs.adaptive-agent-orchestrator', {})
+    if extension.get('coreSkill') != CORE_SKILL:
         raise ValueError('Codex manifest core skill mismatch')
-    if tuple(manifest.get('runtime', {}).get('scripts', ())) != RUNTIME_SCRIPTS:
+    if tuple(extension.get('runtime', {}).get('scripts', ())) != RUNTIME_SCRIPTS:
         raise ValueError('Codex runtime inventory mismatch')
     inventory = list(source_files())
     if len({relative for _, relative in inventory}) != len(inventory):

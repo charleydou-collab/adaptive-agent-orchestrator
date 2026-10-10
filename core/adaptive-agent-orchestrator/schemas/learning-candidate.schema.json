@@ -3,19 +3,19 @@
   "title": "Chat-scoped learning candidate",
   "type": "object",
   "properties": {
-    "candidate_id": {"type": "string", "minLength": 1},
-    "conversation_key": {"type": "string", "minLength": 1},
-    "rule": {"type": "string", "minLength": 1},
+    "candidate_id": {"type": "string", "minLength": 1, "maxLength": 256},
+    "conversation_key": {"type": "string", "minLength": 1, "maxLength": 128},
+    "rule": {"type": "string", "minLength": 1, "maxLength": 2000},
     "category": {"enum": ["preference", "factual-correction", "interpretation-rule", "workflow-rule", "formatting-rule", "failure-avoidance"]},
-    "task_categories": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true, "minItems": 1},
-    "role_targets": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true, "minItems": 1},
-    "conditions": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
-    "exceptions": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
-    "source_refs": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true, "minItems": 1},
+    "task_categories": {"type": "array", "items": {"type": "string", "minLength": 1, "maxLength": 128}, "uniqueItems": true, "minItems": 1, "maxItems": 16},
+    "role_targets": {"type": "array", "items": {"type": "string", "minLength": 1, "maxLength": 128}, "uniqueItems": true, "minItems": 1, "maxItems": 16},
+    "conditions": {"type": "array", "items": {"type": "string", "minLength": 1, "maxLength": 1000}, "uniqueItems": true, "maxItems": 16},
+    "exceptions": {"type": "array", "items": {"type": "string", "minLength": 1, "maxLength": 1000}, "uniqueItems": true, "maxItems": 16},
+    "source_refs": {"type": "array", "items": {"type": "string", "minLength": 1, "maxLength": 256}, "uniqueItems": true, "minItems": 1, "maxItems": 32},
     "confidence_class": {"enum": ["explicit", "verified", "repeated", "inferred"]},
     "risk_class": {"enum": ["low", "high"]},
     "verified": {"type": "boolean"},
-    "created_at": {"type": "string", "minLength": 1}
+    "created_at": {"type": "string", "minLength": 1, "maxLength": 64}
   },
   "required": ["candidate_id", "conversation_key", "rule", "category", "task_categories", "role_targets", "conditions", "exceptions", "source_refs", "confidence_class", "risk_class", "verified", "created_at"],
   "additionalProperties": false

@@ -237,6 +237,7 @@ def context_package():
         'omissions': [{'ref': 'episode-older', 'reason_code': 'budget'}],
         'component_token_estimates': {'policy': 300, 'capsule': 200, 'lessons': 80,
             'episodes': 120, 'recent_turns': 250}, 'total_estimated_tokens': 950,
+        'required_input_token_estimate': 125, 'required_input_limit': 8000,
         'estimate_quality': 'approximate', 'budget_status': 'within-budget',
         'rehydration_refs': [], 'created_at': '2026-10-10T00:00:00Z'}
 
@@ -347,7 +348,9 @@ class ContractTests(unittest.TestCase):
     def test_persisted_chat_contracts_have_enforced_size_bounds(self):
         for name, value, text_field, collection_field in (
                 ('chat-state-capsule', capsule(), ('objectives', 0, 'text'), 'objectives'),
-                ('chat-lesson', lesson(), ('rule',), 'source_refs')):
+                ('learning-candidate', candidate(), ('rule',), 'source_refs'),
+                ('chat-lesson', lesson(), ('rule',), 'source_refs'),
+                ('episode-summary', episode(), ('summary',), 'source_refs')):
             schema = self.schemas[name]
             with self.subTest(name=name, boundary='text'):
                 target = schema['properties']
@@ -362,8 +365,10 @@ class ContractTests(unittest.TestCase):
                 invalid = copy.deepcopy(value)
                 if name == 'chat-state-capsule':
                     invalid['objectives'][0]['text'] = 'x' * (target['maxLength'] + 1)
-                else:
+                elif name in ('learning-candidate', 'chat-lesson'):
                     invalid['rule'] = 'x' * (target['maxLength'] + 1)
+                else:
+                    invalid['summary'] = 'x' * (target['maxLength'] + 1)
                 with self.assertRaises(AssertionError):
                     self.check(name, invalid)
             with self.subTest(name=name, boundary='collection'):
@@ -392,6 +397,11 @@ class ContractTests(unittest.TestCase):
             'context_compilation': True, 'original_turn_rehydration': True,
             'deletion_event_support': True, 'learning_scope': 'session', 'scope': 'session'}
         self.check('platform-capabilities', supported)
+        for field in ('scope', 'learning_scope'):
+            workspace = copy.deepcopy(supported)
+            workspace['conversation_context'][field] = 'workspace'
+            with self.assertRaises(AssertionError, msg=field):
+                self.check('platform-capabilities', workspace)
 
     def test_v013_contracts_remain_valid(self):
         self.check('task-contract', contract())

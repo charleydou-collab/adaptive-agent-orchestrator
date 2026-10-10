@@ -188,18 +188,35 @@ class ContextCompilerTests(unittest.TestCase):
         self.assertEqual(estimates['capsule'], 0)
         self.assertEqual(estimates['lessons'],
             self.module._serialized_tokens(content['lessons']))
-        self.assertEqual(estimates['episodes'], self.module._serialized_tokens({
-            'episodes': content['episodes'],
-            'required_inputs': content['required_inputs'],
-        }))
+        self.assertEqual(estimates['episodes'],
+            self.module._serialized_tokens(content['episodes']))
         self.assertEqual(estimates['recent_turns'],
             self.module._serialized_tokens(content['recent_turns']))
         self.assertEqual(result['package']['total_estimated_tokens'],
-            self.module._serialized_tokens(content))
+            self.module._serialized_tokens(self.module._historical_content(content)))
+        self.assertEqual(result['package']['required_input_token_estimate'],
+            self.module._serialized_tokens(content['required_inputs']))
         self.assertLessEqual(estimates['lessons'], limits['lessons'])
         self.assertLessEqual(estimates['episodes'], limits['episodes'])
         self.assertLessEqual(estimates['recent_turns'], limits['recent_turns'])
         self.assertLessEqual(result['package']['total_estimated_tokens'], limits['total'])
+
+    def test_required_inputs_use_separate_task_budget(self):
+        required = [{'ref': 'source-document', 'content': 'x' * 3000,
+            'requires_exact': True}]
+        result = self.module.compile_context(request(), platform_fixture(),
+            state(), [], required)
+        self.assertEqual(result['status'], 'ready')
+        self.assertEqual(result['package']['required_input_refs'], ['source-document'])
+        self.assertGreater(result['package']['required_input_token_estimate'], 900)
+        self.assertLessEqual(result['package']['total_estimated_tokens'],
+            sum(self.module.NORMAL_LIMITS.values()))
+
+        blocked = self.module.compile_context(request(), platform_fixture(),
+            state(), [], required, {'required_inputs': 100})
+        self.assertEqual(blocked['status'], 'blocked')
+        self.assertEqual(blocked['blocker'], {
+            'code': 'required-input-overflow', 'refs': ['source-document']})
 
     def test_fixed_collection_overhead_cannot_be_ready_over_component_caps(self):
         limits = {'policy': 100, 'capsule': 0, 'lessons': 0, 'episodes': 0,

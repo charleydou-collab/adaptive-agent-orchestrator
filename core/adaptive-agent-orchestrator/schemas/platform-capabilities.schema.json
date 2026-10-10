@@ -174,8 +174,8 @@
         "context_compilation": {"type": "boolean"},
         "original_turn_rehydration": {"type": "boolean"},
         "deletion_event_support": {"type": "boolean"},
-        "learning_scope": {"enum": ["durable", "workspace", "session", "in-chat", "none"]},
-        "scope": {"enum": ["durable", "workspace", "session", "none"]}
+        "learning_scope": {"enum": ["durable", "session", "in-chat", "none"]},
+        "scope": {"enum": ["durable", "session", "none"]}
       },
       "required": ["stable_identity", "persistence_supported", "transcript_retrieval", "message_list_control", "token_estimation", "context_compilation", "original_turn_rehydration", "deletion_event_support", "learning_scope", "scope"],
       "additionalProperties": false,
@@ -186,7 +186,7 @@
           "else": {
             "properties": {
               "stable_identity": {"const": true},
-              "scope": {"enum": ["durable", "workspace", "session"]}
+              "scope": {"enum": ["durable", "session"]}
             }
           }
         },

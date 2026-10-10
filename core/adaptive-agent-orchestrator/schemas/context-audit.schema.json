@@ -25,11 +25,13 @@
       "additionalProperties": false
     },
     "total_estimated_tokens": {"type": "integer", "minimum": 0},
+    "required_input_token_estimate": {"type": "integer", "minimum": 0},
+    "required_input_limit": {"type": "integer", "minimum": 0, "maximum": 32000},
     "estimate_quality": {"enum": ["exact", "approximate", "unavailable"]},
     "budget_status": {"enum": ["within-budget", "compressed", "max-budget", "unbounded-override"]},
     "rehydration_refs": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
     "fallback_reasons": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true}
   },
-  "required": ["package_id", "conversation_key", "task_id", "selected_lesson_ids", "selected_episode_ids", "selected_recent_turn_refs", "omissions", "component_token_estimates", "total_estimated_tokens", "estimate_quality", "budget_status", "rehydration_refs", "fallback_reasons"],
+  "required": ["package_id", "conversation_key", "task_id", "selected_lesson_ids", "selected_episode_ids", "selected_recent_turn_refs", "omissions", "component_token_estimates", "total_estimated_tokens", "required_input_token_estimate", "required_input_limit", "estimate_quality", "budget_status", "rehydration_refs", "fallback_reasons"],
   "additionalProperties": false
 }

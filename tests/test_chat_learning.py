@@ -78,6 +78,14 @@ class ChatLearningTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 self.module.activation_decision(value, [], 99)
 
+    def test_candidate_size_limits_are_enforced_at_governance_boundary(self):
+        oversized = candidate(rule='x' * 2001)
+        with self.assertRaisesRegex(ValueError, 'invalid learning candidate'):
+            self.module.activation_decision(oversized, [], 1)
+        too_many_refs = candidate(source_refs=[f'ref-{index}' for index in range(33)])
+        with self.assertRaisesRegex(ValueError, 'invalid learning candidate'):
+            self.module.activation_decision(too_many_refs, [], 1)
+
     def test_exact_conversation_matching_for_conflicts_and_application(self):
         other = active_lesson(conversation_key='other-conversation')
         decision = self.module.activation_decision(candidate(), [other], 1)

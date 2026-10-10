@@ -42,6 +42,11 @@ def build(output):
     compatibility = json.loads(COMPATIBILITY_MANIFEST.read_text(encoding="utf-8"))
     if compatibility.get("name") != PLUGIN_NAME or compatibility.get("version") != manifest.get("version"):
         raise ValueError("Compatibility manifest identity or version mismatch")
+    extension = manifest.get("extensions", {}).get(
+        "org.suncbs.adaptive-agent-orchestrator", {})
+    if extension.get("sharedCore") != {
+            "name": PLUGIN_NAME, "version": manifest.get("version")}:
+        raise ValueError("Compatibility manifest core version mismatch")
     inventory = list(source_files())
     if len({relative for _, relative in inventory}) != len(inventory):
         raise ValueError("Duplicate archive path")

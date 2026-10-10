@@ -5,9 +5,12 @@ import unittest
 import zipfile
 from pathlib import Path, PurePosixPath
 
+from tests.test_contracts import validate
+
 
 ROOT = Path(__file__).resolve().parents[1]
 BUILDER = ROOT / "scripts" / "build_chatgpt_plugin.py"
+PLUGIN_SCHEMA = json.loads((ROOT / 'tests/fixtures/agent-plugin-1.0.0.schema.json').read_text())
 
 
 class PluginBuildTests(unittest.TestCase):
@@ -42,11 +45,12 @@ class PluginBuildTests(unittest.TestCase):
                 compatibility = json.loads(bundle.read("adaptive-agent-orchestrator/.codex-plugin/plugin.json"))
                 self.assertEqual(manifest["name"], "adaptive-agent-orchestrator")
                 self.assertEqual(manifest["version"], "0.2.0")
+                validate(manifest, PLUGIN_SCHEMA)
                 self.assertEqual(compatibility["name"], manifest["name"])
                 self.assertEqual(compatibility["version"], manifest["version"])
                 expected_core = {"name": "adaptive-agent-orchestrator", "version": "0.2.0"}
-                self.assertEqual(manifest["sharedCore"], expected_core)
-                self.assertEqual(compatibility["sharedCore"], expected_core)
+                extension = manifest["extensions"]["org.suncbs.adaptive-agent-orchestrator"]
+                self.assertEqual(extension["sharedCore"], expected_core)
                 for key, value in manifest["extensions"]["com.openai"]["interface"].items():
                     self.assertEqual(compatibility["interface"][key], value)
                 self.assertIn(b"name: adaptive-agent-orchestrator", bundle.read(skill))

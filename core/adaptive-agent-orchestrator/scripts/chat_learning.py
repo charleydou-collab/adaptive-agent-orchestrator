@@ -21,27 +21,36 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
 
 
-def _validate_string_list(value: Any, allow_empty: bool = True) -> None:
-    if not isinstance(value, list) or (not allow_empty and not value):
+def _validate_string_list(value: Any, allow_empty: bool = True,
+        max_items: int = 16, max_length: int = 256) -> None:
+    if (not isinstance(value, list) or (not allow_empty and not value)
+            or len(value) > max_items):
         raise ValueError('invalid learning candidate')
-    if any(not isinstance(item, str) or not item for item in value) or len(set(value)) != len(value):
+    if (any(not isinstance(item, str) or not item or len(item) > max_length
+            for item in value) or len(set(value)) != len(value)):
         raise ValueError('invalid learning candidate')
 
 
 def _validate_candidate(candidate: Dict[str, Any]) -> None:
     if not isinstance(candidate, dict) or set(candidate) != CANDIDATE_FIELDS:
         raise ValueError('invalid learning candidate')
-    for field in ('candidate_id', 'conversation_key', 'rule', 'created_at'):
-        if not isinstance(candidate[field], str) or not candidate[field]:
+    maximums = {'candidate_id': 256, 'conversation_key': 128,
+        'rule': 2000, 'created_at': 64}
+    for field, maximum in maximums.items():
+        if (not isinstance(candidate[field], str) or not candidate[field]
+                or len(candidate[field]) > maximum):
             raise ValueError('invalid learning candidate')
     if candidate['category'] not in CATEGORIES or candidate['confidence_class'] not in CONFIDENCE_CLASSES:
         raise ValueError('invalid learning candidate')
     if candidate['risk_class'] not in {'low', 'high'} or type(candidate['verified']) is not bool:
         raise ValueError('invalid learning candidate')
-    for field in ('task_categories', 'role_targets', 'source_refs'):
-        _validate_string_list(candidate[field], allow_empty=False)
+    for field in ('task_categories', 'role_targets'):
+        _validate_string_list(candidate[field], allow_empty=False,
+            max_items=16, max_length=128)
+    _validate_string_list(candidate['source_refs'], allow_empty=False,
+        max_items=32, max_length=256)
     for field in ('conditions', 'exceptions'):
-        _validate_string_list(candidate[field])
+        _validate_string_list(candidate[field], max_items=16, max_length=1000)
 
 
 def _conflicts(candidate: Dict[str, Any], lesson: Dict[str, Any]) -> bool:

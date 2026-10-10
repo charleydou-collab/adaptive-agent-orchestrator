@@ -6,10 +6,13 @@ import unittest
 import zipfile
 from pathlib import Path, PurePosixPath
 
+from tests.test_contracts import validate
+
 
 ROOT = Path(__file__).resolve().parents[1]
 BUILDER = ROOT / 'scripts' / 'build_codex_plugin.py'
 ROOT_NAME = 'adaptive-agent-orchestrator-codex'
+PLUGIN_SCHEMA = json.loads((ROOT / 'tests/fixtures/agent-plugin-1.0.0.schema.json').read_text())
 APPROVED_SCRIPTS = {
     'chat_learning.py', 'chat_state.py', 'compile_context.py',
     'manage_agent_ledger.py', 'manage_chat_state.py', 'resolve_model.py',
@@ -32,8 +35,10 @@ class CodexPluginBuildTests(unittest.TestCase):
                 manifest = json.loads(bundle.read(f'{ROOT_NAME}/plugin.json'))
                 self.assertEqual(manifest['name'], ROOT_NAME)
                 self.assertEqual(manifest['version'], '0.2.0')
-                self.assertEqual(manifest['coreSkill'], 'adaptive-agent-orchestrator')
-                self.assertEqual(manifest['sharedCore'], {
+                validate(manifest, PLUGIN_SCHEMA)
+                extension = manifest['extensions']['org.suncbs.adaptive-agent-orchestrator']
+                self.assertEqual(extension['coreSkill'], 'adaptive-agent-orchestrator')
+                self.assertEqual(extension['sharedCore'], {
                     'name': 'adaptive-agent-orchestrator', 'version': '0.2.0'})
                 skill = f'{ROOT_NAME}/skills/adaptive-agent-orchestrator/SKILL.md'
                 self.assertIn(skill, names)

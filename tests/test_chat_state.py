@@ -261,6 +261,16 @@ class ChatStateTests(unittest.TestCase):
                 self.assertEqual(self.module.load_state(
                     self.root, 'adapter-a', conversation_id)['revision'], 0)
 
+    def test_episode_size_limit_is_enforced_at_storage_boundary(self):
+        self.module.init_state(self.root, scope())
+        oversized = episode_fixture('oversized')
+        oversized['summary'] = 'x' * 4001
+        with self.assertRaisesRegex(ValueError, 'invalid episode summary'):
+            self.module.update_state(self.root, 'adapter-a', 'conversation-1', 0,
+                lambda state: state['episodes'].append(oversized))
+        self.assertEqual(self.module.load_state(
+            self.root, 'adapter-a', 'conversation-1')['revision'], 0)
+
     def test_mutation_boundary_rejects_records_from_another_conversation(self):
         for index, record_type in enumerate(('capsule', 'episode')):
             conversation_id = f'conversation-{index}'

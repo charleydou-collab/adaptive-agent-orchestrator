@@ -172,7 +172,9 @@ class AdapterTests(unittest.TestCase):
         expected_core = {'name': 'adaptive-agent-orchestrator', 'version': '0.2.0'}
         for manifest in (codex_manifest, web_manifest, compatibility):
             self.assertEqual(manifest['version'], '0.2.0')
-            self.assertEqual(manifest['sharedCore'], expected_core)
+        namespace = 'org.suncbs.adaptive-agent-orchestrator'
+        self.assertEqual(codex_manifest['extensions'][namespace]['sharedCore'], expected_core)
+        self.assertEqual(web_manifest['extensions'][namespace]['sharedCore'], expected_core)
         self.assertEqual(codex_caps['adapter_version'], '0.2.0')
         self.assertEqual(web_caps['adapter_version'], '0.2.0')
 

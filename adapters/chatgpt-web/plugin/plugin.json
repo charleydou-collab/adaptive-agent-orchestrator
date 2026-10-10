@@ -3,11 +3,13 @@
   "name": "adaptive-agent-orchestrator",
   "version": "0.2.0",
   "description": "Model-neutral orchestration with bounded in-chat learning, capability routing, KPI verification, and cost controls.",
-  "sharedCore": {
-    "name": "adaptive-agent-orchestrator",
-    "version": "0.2.0"
-  },
   "extensions": {
+    "org.suncbs.adaptive-agent-orchestrator": {
+      "sharedCore": {
+        "name": "adaptive-agent-orchestrator",
+        "version": "0.2.0"
+      }
+    },
     "com.openai": {
       "interface": {
         "displayName": "Adaptive Agent Orchestrator",
