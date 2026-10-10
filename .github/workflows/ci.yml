@@ -21,10 +21,14 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Run tests
         run: python -m unittest discover -s tests -v
-      - name: Build plugin twice
+      - name: Build both plugins twice
         run: |
-          python scripts/build_chatgpt_plugin.py --output /tmp/one.zip
-          python scripts/build_chatgpt_plugin.py --output /tmp/two.zip
-          cmp /tmp/one.zip /tmp/two.zip
-          unzip -t /tmp/one.zip
+          python scripts/build_codex_plugin.py --output /tmp/codex-one.zip
+          python scripts/build_codex_plugin.py --output /tmp/codex-two.zip
+          cmp /tmp/codex-one.zip /tmp/codex-two.zip
+          unzip -t /tmp/codex-one.zip
+          python scripts/build_chatgpt_plugin.py --output /tmp/web-one.zip
+          python scripts/build_chatgpt_plugin.py --output /tmp/web-two.zip
+          cmp /tmp/web-one.zip /tmp/web-two.zip
+          unzip -t /tmp/web-one.zip
 
