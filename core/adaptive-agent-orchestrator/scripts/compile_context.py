@@ -10,6 +10,10 @@ from typing import Any, Dict, List, Optional, Tuple
 NORMAL_LIMITS = {'policy': 600, 'capsule': 500, 'lessons': 300, 'episodes': 800, 'recent_turns': 1200}
 MAX_LIMITS = {'policy': 1000, 'capsule': 800, 'lessons': 600, 'episodes': 1500, 'recent_turns': 2000}
 COMPONENTS = ('policy', 'capsule', 'lessons', 'episodes', 'recent_turns')
+TEXT_LIMITS = {'conversation_key': 128, 'task_id': 128,
+    'task_category': 128, 'role': 128}
+COLLECTION_LIMITS = {'topics': (64, 256), 'entities': (64, 256),
+    'required_evidence_refs': (128, 512), 'applicability_facts': (64, 512)}
 
 
 def estimate_tokens(value: str) -> int:
@@ -28,17 +32,25 @@ def _serialized_tokens(value: Any) -> int:
 
 def _request_fields(request: Dict[str, Any]) -> None:
     required = {'conversation_key', 'task_id', 'task_category', 'role', 'topics', 'entities',
-        'required_evidence_refs', 'lesson_limit', 'episode_limit', 'full_context'}
+        'required_evidence_refs', 'applicability_facts', 'lesson_limit', 'episode_limit',
+        'full_context'}
     if not isinstance(request, dict) or set(request) != required:
         raise ValueError('invalid retrieval request')
-    for field in ('conversation_key', 'task_id', 'task_category', 'role'):
-        if not isinstance(request[field], str) or not request[field]:
+    for field, maximum in TEXT_LIMITS.items():
+        if (not isinstance(request[field], str) or not request[field]
+                or len(request[field]) > maximum):
             raise ValueError('invalid retrieval request')
-    for field in ('topics', 'entities', 'required_evidence_refs'):
-        if not isinstance(request[field], list) or any(not isinstance(item, str) or not item for item in request[field]):
+    for field, (max_items, max_length) in COLLECTION_LIMITS.items():
+        value = request[field]
+        if (not isinstance(value, list) or len(value) > max_items
+                or any(not isinstance(item, str) or not item or len(item) > max_length
+                    for item in value)):
             raise ValueError('invalid retrieval request')
-    for field in ('lesson_limit', 'episode_limit'):
-        if isinstance(request[field], bool) or not isinstance(request[field], int) or request[field] < 0:
+        if len(set(value)) != len(value):
+            raise ValueError('invalid retrieval request')
+    for field, maximum in (('lesson_limit', 5), ('episode_limit', 20)):
+        if (isinstance(request[field], bool) or not isinstance(request[field], int)
+                or not 0 <= request[field] <= maximum):
             raise ValueError('invalid retrieval request')
     if type(request['full_context']) is not bool:
         raise ValueError('invalid retrieval request')
@@ -54,6 +66,7 @@ def rank_lessons(request: Dict[str, Any], lessons: List[Dict[str, Any]]) -> List
     if not isinstance(lessons, list):
         raise ValueError('invalid lesson list')
     eligible = []
+    facts = set(request['applicability_facts'])
     for lesson in lessons:
         if (not isinstance(lesson, dict) or lesson.get('conversation_key') != request['conversation_key']
                 or lesson.get('status') != 'active'):
@@ -63,6 +76,13 @@ def rank_lessons(request: Dict[str, Any], lessons: List[Dict[str, Any]]) -> List
         if task_categories and request['task_category'] not in task_categories and 'general' not in task_categories:
             continue
         if roles and request['role'] not in roles and 'all' not in roles:
+            continue
+        conditions = lesson.get('conditions', [])
+        exceptions = lesson.get('exceptions', [])
+        if (not isinstance(conditions, list) or not isinstance(exceptions, list)
+                or any(not isinstance(item, str) for item in conditions + exceptions)):
+            continue
+        if not set(conditions) <= facts or set(exceptions) & facts:
             continue
         eligible.append(lesson)
 
@@ -79,7 +99,10 @@ def rank_episodes(request: Dict[str, Any], episodes: List[Dict[str, Any]]) -> Li
     if not isinstance(episodes, list):
         raise ValueError('invalid episode list')
     eligible = [item for item in episodes if isinstance(item, dict)
-        and item.get('conversation_key') == request['conversation_key']]
+        and item.get('conversation_key') == request['conversation_key']
+        and (request['role'] == 'management'
+            or request['role'] in item.get('role_targets', [])
+            or 'all' in item.get('role_targets', []))]
     topics, entities = set(request['topics']), set(request['entities'])
 
     def score(item):
@@ -92,7 +115,10 @@ def rank_episodes(request: Dict[str, Any], episodes: List[Dict[str, Any]]) -> Li
 
 def _rank_turns(request: Dict[str, Any], turns: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     topics, entities = set(request['topics']), set(request['entities'])
-    indexed = list(enumerate(turns))
+    indexed = [(index, item) for index, item in enumerate(turns)
+        if (request['role'] == 'management'
+            or request['role'] in item.get('role_targets', [])
+            or 'all' in item.get('role_targets', []))]
     def score(pair):
         index, item = pair
         return ((1000 if item.get('mandatory') else 0)
@@ -122,7 +148,32 @@ def _limits(request: Dict[str, Any], supplied: Optional[Dict[str, int]]) -> Tupl
             if value > MAX_LIMITS[key]:
                 raise ValueError('context limit exceeds maximum')
             defaults[key] = value
-    return defaults, supplied.get('total', sum(defaults.values()))
+    total_limit = supplied.get('total', sum(defaults.values()))
+    if total_limit > sum(MAX_LIMITS.values()):
+        raise ValueError('context limit exceeds maximum')
+    return defaults, total_limit
+
+
+def _state_conversation_key(state: Dict[str, Any]) -> str:
+    scope = state.get('scope')
+    if not isinstance(scope, dict):
+        raise ValueError('invalid compiler input')
+    adapter = scope.get('adapter')
+    conversation_id = scope.get('conversation_id')
+    if not isinstance(adapter, str) or not adapter or not isinstance(conversation_id, str) or not conversation_id:
+        raise ValueError('invalid compiler input')
+    return hashlib.sha256((adapter + '\0' + conversation_id).encode('utf-8')).hexdigest()
+
+
+def _component_estimates(content: Dict[str, Any]) -> Dict[str, int]:
+    return {
+        'policy': _serialized_tokens(content['policy_refs']),
+        'capsule': _serialized_tokens(content['capsule']),
+        'lessons': _serialized_tokens(content['lessons']),
+        'episodes': _serialized_tokens({'episodes': content['episodes'],
+            'required_inputs': content['required_inputs']}),
+        'recent_turns': _serialized_tokens(content['recent_turns']),
+    }
 
 
 def compile_context(request: Dict[str, Any], platform: Dict[str, Any], state: Dict[str, Any],
@@ -133,101 +184,133 @@ def compile_context(request: Dict[str, Any], platform: Dict[str, Any], state: Di
         raise ValueError('invalid compiler input')
     if not isinstance(recent_turns, list) or not isinstance(required_inputs, list):
         raise ValueError('invalid compiler input')
+    if _state_conversation_key(state) != request['conversation_key']:
+        raise ValueError('conversation scope mismatch')
+    stored_capsule = state.get('capsule')
+    if stored_capsule is not None and (not isinstance(stored_capsule, dict)
+            or stored_capsule.get('conversation_key') != request['conversation_key']):
+        raise ValueError('capsule conversation mismatch')
+
     selected_limits, total_limit = _limits(request, limits)
     omissions: List[Dict[str, str]] = []
     mandatory_overflow: List[str] = []
+    required_refs = set(request['required_evidence_refs'])
+    is_management = request['role'] == 'management'
 
-    capsule = state.get('capsule')
-    capsule_estimate = _serialized_tokens(capsule)
-    if capsule_estimate > selected_limits['capsule']:
+    policy_refs = ['adaptive-agent-orchestrator-core']
+    if _serialized_tokens(policy_refs) > selected_limits['policy']:
+        mandatory_overflow.append('policy:adaptive-agent-orchestrator-core')
+
+    capsule = stored_capsule if is_management else None
+    if _serialized_tokens(capsule) > selected_limits['capsule']:
         mandatory_overflow.append('capsule:' + str(state.get('revision', 0)))
+        capsule = None
 
     lesson_limit = min(request['lesson_limit'], 5 if request['role'] == 'management' else 3)
-    lesson_budget = 0
     selected_lessons = []
     ranked_lessons = rank_lessons(request, state.get('lessons', []))
     for item in ranked_lessons:
-        cost = estimate_tokens(_content_text(item, 'rule'))
-        if len(selected_lessons) >= lesson_limit or lesson_budget + cost > selected_limits['lessons']:
+        emitted = {'lesson_id': item['lesson_id'], 'rule': _content_text(item, 'rule')}
+        if (len(selected_lessons) >= lesson_limit
+                or _serialized_tokens(selected_lessons + [emitted]) > selected_limits['lessons']):
             omissions.append({'ref': item['lesson_id'], 'reason_code': 'budget'})
         else:
-            selected_lessons.append(item)
-            lesson_budget += cost
+            selected_lessons.append(emitted)
 
-    episode_budget = 0
     selected_episodes = []
+    selected_inputs = []
+    for item in required_inputs:
+        if not isinstance(item, dict) or not isinstance(item.get('ref'), str) or not item['ref']:
+            raise ValueError('invalid required input')
+        _content_text(item, 'content')
+        candidate = selected_inputs + [item]
+        evidence_content = {'episodes': selected_episodes, 'required_inputs': candidate}
+        if _serialized_tokens(evidence_content) > selected_limits['episodes']:
+            mandatory_overflow.append(item['ref'])
+        else:
+            selected_inputs.append(item)
+
     ranked_episodes = rank_episodes(request, state.get('episodes', []))
     for item in ranked_episodes:
-        cost = estimate_tokens(_content_text(item, 'summary'))
-        if len(selected_episodes) >= request['episode_limit'] or episode_budget + cost > selected_limits['episodes']:
+        emitted = {'episode_id': item['episode_id'], 'summary': _content_text(item, 'summary')}
+        evidence_content = {'episodes': selected_episodes + [emitted],
+            'required_inputs': selected_inputs}
+        if (len(selected_episodes) >= request['episode_limit']
+                or _serialized_tokens(evidence_content) > selected_limits['episodes']):
             omissions.append({'ref': item['episode_id'], 'reason_code': 'budget'})
         else:
-            selected_episodes.append(item)
-            episode_budget += cost
+            selected_episodes.append(emitted)
 
-    turn_budget = 0
     selected_turns = []
     ranked_turns = _rank_turns(request, recent_turns)
     for item in ranked_turns:
         ref = item.get('ref')
         if not isinstance(ref, str) or not ref:
             raise ValueError('invalid recent turn')
-        cost = estimate_tokens(_content_text(item, 'content'))
-        if turn_budget + cost > selected_limits['recent_turns']:
-            if item.get('mandatory'):
+        _content_text(item, 'content')
+        is_required = bool(item.get('mandatory')) or ref in required_refs
+        if _serialized_tokens(selected_turns + [item]) > selected_limits['recent_turns']:
+            if is_required:
                 mandatory_overflow.append(ref)
             else:
                 omissions.append({'ref': ref, 'reason_code': 'budget'})
         else:
             selected_turns.append(item)
-            turn_budget += cost
 
-    for item in required_inputs:
-        if not isinstance(item, dict) or not isinstance(item.get('ref'), str) or not item['ref']:
-            raise ValueError('invalid required input')
-        _content_text(item, 'content')
+    content = {'policy_refs': policy_refs, 'capsule': capsule,
+        'lessons': selected_lessons, 'episodes': selected_episodes,
+        'recent_turns': selected_turns, 'required_inputs': selected_inputs}
 
-    component_estimates = {'policy': 0, 'capsule': capsule_estimate,
-        'lessons': lesson_budget, 'episodes': episode_budget, 'recent_turns': turn_budget}
-
-    def total():
-        return sum(component_estimates.values())
-
-    for collection, estimate_key, identifier, content_field in (
-            (selected_episodes, 'episodes', 'episode_id', 'summary'),
-            (selected_turns, 'recent_turns', 'ref', 'content'),
-            (selected_lessons, 'lessons', 'lesson_id', 'rule')):
+    for collection, identifier in (
+            (selected_episodes, 'episode_id'),
+            (selected_turns, 'ref'),
+            (selected_lessons, 'lesson_id')):
         index = len(collection) - 1
-        while total() > total_limit and index >= 0:
+        while _serialized_tokens(content) > total_limit and index >= 0:
             item = collection[index]
-            if item.get('mandatory'):
+            if (collection is selected_turns
+                    and (item.get('mandatory') or item['ref'] in required_refs)):
                 index -= 1
                 continue
             collection.pop(index)
-            component_estimates[estimate_key] -= estimate_tokens(_content_text(item, content_field))
             omissions.append({'ref': item[identifier], 'reason_code': 'budget'})
             index -= 1
 
-    if total() > total_limit:
-        mandatory_overflow.extend(item['ref'] for item in selected_turns if item.get('mandatory'))
+    if _serialized_tokens(content) > total_limit:
+        mandatory_overflow.extend(item['ref'] for item in selected_turns
+            if item.get('mandatory') or item['ref'] in required_refs)
+        mandatory_overflow.extend(item['ref'] for item in selected_inputs)
+        if capsule is not None:
+            mandatory_overflow.append('capsule:' + str(state.get('revision', 0)))
+        mandatory_overflow.append('policy:adaptive-agent-orchestrator-core')
     mandatory_overflow = sorted(set(mandatory_overflow))
 
     rehydration = set(request['required_evidence_refs'])
-    rehydration.update(item['ref'] for item in recent_turns if item.get('requires_exact'))
+    rehydration.update(item['ref'] for item in ranked_turns if item.get('requires_exact'))
     rehydration.update(item['ref'] for item in required_inputs if item.get('requires_exact'))
-    available_refs = {item['ref'] for item in recent_turns} | {item['ref'] for item in required_inputs}
-    rehydration = sorted(rehydration & available_refs)
+    rehydration = sorted(rehydration)
+    emitted_refs = ({item['ref'] for item in selected_turns}
+        | {item['ref'] for item in selected_inputs})
+    unavailable_rehydration = sorted(ref for ref in rehydration if ref not in emitted_refs)
+    can_rehydrate = bool(platform.get('conversation_context', {}).get(
+        'original_turn_rehydration', False))
 
     canonical = {'request': request, 'state_revision': state.get('revision'),
         'lesson_ids': [item['lesson_id'] for item in selected_lessons],
         'episode_ids': [item['episode_id'] for item in selected_episodes],
         'turn_refs': [item['ref'] for item in selected_turns],
-        'input_refs': [item['ref'] for item in required_inputs], 'limits': selected_limits}
+        'input_refs': [item['ref'] for item in selected_inputs], 'limits': selected_limits}
     package_id = 'context-' + hashlib.sha256(json.dumps(canonical, sort_keys=True,
         separators=(',', ':')).encode('utf-8')).hexdigest()[:16]
     budget_status = ('max-budget' if request['full_context'] and limits is None
         else 'compressed' if any(item['reason_code'] == 'budget' for item in omissions)
         else 'within-budget')
+    component_estimates = _component_estimates(content)
+    total_estimate = _serialized_tokens(content)
+    for component in COMPONENTS:
+        if component_estimates[component] > selected_limits[component]:
+            mandatory_overflow.append(component + ':fixed-overhead')
+    mandatory_overflow = sorted(set(mandatory_overflow))
     package = {'package_id': package_id, 'conversation_key': request['conversation_key'],
         'audience': 'management' if request['role'] == 'management' else 'worker',
         'task_id': request['task_id'],
@@ -235,9 +318,9 @@ def compile_context(request: Dict[str, Any], platform: Dict[str, Any], state: Di
         'selected_lesson_ids': [item['lesson_id'] for item in selected_lessons],
         'selected_episode_ids': [item['episode_id'] for item in selected_episodes],
         'selected_recent_turn_refs': [item['ref'] for item in selected_turns],
-        'required_input_refs': [item['ref'] for item in required_inputs],
+        'required_input_refs': [item['ref'] for item in selected_inputs],
         'omissions': omissions, 'component_token_estimates': component_estimates,
-        'total_estimated_tokens': total(), 'estimate_quality': 'approximate',
+        'total_estimated_tokens': total_estimate, 'estimate_quality': 'approximate',
         'budget_status': budget_status, 'rehydration_refs': rehydration,
         'created_at': state.get('updated_at', '')}
     audit = {key: package[key] for key in ('package_id', 'conversation_key', 'task_id',
@@ -247,16 +330,17 @@ def compile_context(request: Dict[str, Any], platform: Dict[str, Any], state: Di
     audit['fallback_reasons'] = []
     if not platform.get('conversation_context', {}).get('token_estimation', False):
         audit['fallback_reasons'].append('approximate-token-estimation')
-    if rehydration and not platform.get('conversation_context', {}).get('transcript_retrieval', False):
+    if unavailable_rehydration and not can_rehydrate:
         audit['fallback_reasons'].append('original-turn-rehydration-unavailable')
-    content = {'policy_refs': ['adaptive-agent-orchestrator-core'], 'capsule': capsule,
-        'lessons': [{'lesson_id': item['lesson_id'], 'rule': item['rule']} for item in selected_lessons],
-        'episodes': [{'episode_id': item['episode_id'], 'summary': item['summary']} for item in selected_episodes],
-        'recent_turns': selected_turns, 'required_inputs': required_inputs}
-    result = {'status': 'blocked' if mandatory_overflow else 'ready', 'package': package,
+    unavailable_blocker = (sorted(required_refs - emitted_refs)
+        if not can_rehydrate else [])
+    result = {'status': 'blocked' if mandatory_overflow or unavailable_blocker else 'ready', 'package': package,
         'content': content, 'audit': audit, 'limits': selected_limits}
     if mandatory_overflow:
         result['blocker'] = {'code': 'mandatory-content-overflow', 'refs': mandatory_overflow}
+    elif unavailable_blocker:
+        result['blocker'] = {'code': 'required-evidence-unavailable',
+            'refs': unavailable_blocker}
     return result
 
 

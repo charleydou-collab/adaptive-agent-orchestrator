@@ -67,6 +67,7 @@ def validate(value, schema, root=None):
                 validate(item, props[key], root)
     if isinstance(value, list):
         assert len(value) >= schema.get('minItems', 0), 'minItems'
+        assert len(value) <= schema.get('maxItems', float('inf')), 'maxItems'
         if schema.get('uniqueItems'):
             assert len({json.dumps(x, sort_keys=True) for x in value}) == len(value), 'uniqueItems'
         for item in value:
@@ -224,6 +225,7 @@ def retrieval_request():
     return {'conversation_key': 'conversation-key-1', 'task_id': 'task-2',
         'task_category': 'research', 'role': 'management', 'topics': ['backup'],
         'entities': ['company documents'], 'required_evidence_refs': ['artifact-1'],
+        'applicability_facts': ['The user has not requested a detailed explanation.'],
         'lesson_limit': 5, 'episode_limit': 3, 'full_context': False}
 
 
@@ -278,6 +280,26 @@ class ContractTests(unittest.TestCase):
             for token in ('gpt-', 'claude-', 'gemini-', 'spawn_agent', 'mcp__', '/' + 'users/', '/' + 'home/', '~/', 'c:\\'):
                 self.assertNotIn(token, text)
 
+    def test_retrieval_request_has_finite_input_bounds(self):
+        schema = self.schemas['retrieval-request']
+        properties = schema['properties']
+        for field in ('conversation_key', 'task_id', 'task_category', 'role'):
+            self.assertGreater(properties[field]['maxLength'], 0)
+        for field in ('topics', 'entities', 'required_evidence_refs', 'applicability_facts'):
+            self.assertGreater(properties[field]['maxItems'], 0)
+            self.assertGreater(properties[field]['items']['maxLength'], 0)
+        self.assertEqual(properties['lesson_limit']['maximum'], 5)
+        self.assertEqual(properties['episode_limit']['maximum'], 20)
+
+        boundary = retrieval_request()
+        boundary['topics'] = ['topic'] * (properties['topics']['maxItems'] + 1)
+        with self.assertRaisesRegex(AssertionError, 'maxItems'):
+            self.check('retrieval-request', boundary)
+        boundary = retrieval_request()
+        boundary['task_id'] = 'x' * (properties['task_id']['maxLength'] + 1)
+        with self.assertRaisesRegex(AssertionError, 'maxLength'):
+            self.check('retrieval-request', boundary)
+
     def test_valid_examples_and_required_fields(self):
         values = (
             platform(), registry(), contract(), report(), clarification_request(),
@@ -320,6 +342,40 @@ class ContractTests(unittest.TestCase):
                 invalid = copy.deepcopy(value)
                 invalid[field] = 'private content'
                 with self.assertRaises(AssertionError, msg=f'{name}: {field}'):
+                    self.check(name, invalid)
+
+    def test_persisted_chat_contracts_have_enforced_size_bounds(self):
+        for name, value, text_field, collection_field in (
+                ('chat-state-capsule', capsule(), ('objectives', 0, 'text'), 'objectives'),
+                ('chat-lesson', lesson(), ('rule',), 'source_refs')):
+            schema = self.schemas[name]
+            with self.subTest(name=name, boundary='text'):
+                target = schema['properties']
+                for part in text_field:
+                    if isinstance(part, int):
+                        target = target['items']
+                    elif part == 'text' and '$ref' in target:
+                        target = schema['$defs']['entry']['properties']['text']
+                    else:
+                        target = target[part] if part in target else target['properties'][part]
+                self.assertIn('maxLength', target)
+                invalid = copy.deepcopy(value)
+                if name == 'chat-state-capsule':
+                    invalid['objectives'][0]['text'] = 'x' * (target['maxLength'] + 1)
+                else:
+                    invalid['rule'] = 'x' * (target['maxLength'] + 1)
+                with self.assertRaises(AssertionError):
+                    self.check(name, invalid)
+            with self.subTest(name=name, boundary='collection'):
+                collection = schema['properties'][collection_field]
+                self.assertIn('maxItems', collection)
+                invalid = copy.deepcopy(value)
+                invalid[collection_field] = [f'ref-{index}' for index in range(collection['maxItems'] + 1)]
+                if name == 'chat-state-capsule':
+                    invalid[collection_field] = [
+                        {'text': f'item-{index}', 'source_refs': [f'ref-{index}']}
+                        for index in range(collection['maxItems'] + 1)]
+                with self.assertRaises(AssertionError):
                     self.check(name, invalid)
 
     def test_platform_context_capabilities_are_coherent(self):

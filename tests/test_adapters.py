@@ -162,6 +162,20 @@ class AdapterTests(unittest.TestCase):
         self.assertEqual(web["conversation_context"]["learning_scope"], "in-chat")
         self.assertFalse(generic["conversation_context"]["context_compilation"])
 
+    def test_v020_adapters_declare_consistent_distribution_and_core_versions(self):
+        codex_manifest = json.loads((ADAPTERS / 'codex/plugin.json').read_text())
+        web_manifest = json.loads((ADAPTERS / 'chatgpt-web/plugin/plugin.json').read_text())
+        compatibility = json.loads((ADAPTERS /
+            'chatgpt-web/plugin/.codex-plugin/plugin.json').read_text())
+        codex_caps = json.loads((ADAPTERS / 'codex/platform-capabilities.yaml').read_text())
+        web_caps = json.loads((ADAPTERS / 'chatgpt-web/platform-capabilities.yaml').read_text())
+        expected_core = {'name': 'adaptive-agent-orchestrator', 'version': '0.2.0'}
+        for manifest in (codex_manifest, web_manifest, compatibility):
+            self.assertEqual(manifest['version'], '0.2.0')
+            self.assertEqual(manifest['sharedCore'], expected_core)
+        self.assertEqual(codex_caps['adapter_version'], '0.2.0')
+        self.assertEqual(web_caps['adapter_version'], '0.2.0')
+
     def test_generic_adapter_claims_only_fallback_capabilities(self):
         declaration = json.loads((ADAPTERS / "generic-prompt" / "platform-capabilities.example.yaml").read_text(encoding="utf-8"))
         self.assertFalse(declaration["delegation"]["supported"])

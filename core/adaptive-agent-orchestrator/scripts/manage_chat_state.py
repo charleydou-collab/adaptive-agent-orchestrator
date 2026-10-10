@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 import sys
 
-from chat_learning import activation_decision, apply_candidate, forget_lesson
+from chat_learning import activate_lesson, activation_decision, apply_candidate, forget_lesson
 from chat_state import delete_state, init_state, load_state, update_state
 
 
@@ -49,11 +49,12 @@ def _parser():
     return parser
 
 
-def _find_lesson(state, lesson_id):
-    matches = [item for item in state['lessons'] if item.get('lesson_id') == lesson_id]
-    if len(matches) != 1:
-        raise ValueError('lesson unavailable')
-    return matches[0]
+def _lesson_id(payload):
+    if (not isinstance(payload, dict) or set(payload) != {'lesson_id'}
+            or not isinstance(payload['lesson_id'], str) or not payload['lesson_id']
+            or len(payload['lesson_id']) > 256):
+        raise ValueError('invalid lesson request')
+    return payload['lesson_id']
 
 
 def _execute(args):
@@ -86,15 +87,12 @@ def _execute(args):
             apply_candidate(state, payload, decision)
     elif args.command == 'activate':
         def operation(state):
-            lesson = _find_lesson(state, payload.get('lesson_id'))
-            if lesson.get('category') == 'factual-correction' and not lesson.get('verified'):
-                raise ValueError('evidence required')
             if not args.confirm:
                 raise ValueError('confirmation required')
-            lesson['status'] = 'active'
+            activate_lesson(state, _lesson_id(payload))
     elif args.command == 'forget':
         def operation(state):
-            forget_lesson(state, payload.get('lesson_id'))
+            forget_lesson(state, _lesson_id(payload))
     elif args.command == 'compact':
         operation = lambda state: state['episodes'].append(payload)
     else:

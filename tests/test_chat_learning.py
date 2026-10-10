@@ -124,6 +124,21 @@ class ChatLearningTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.module.forget_lesson(target, 'missing')
 
+    def test_confirmed_activation_rechecks_conflicts_and_updates_audit_fields(self):
+        proposed = active_lesson(lesson_id='lesson-proposed', status='proposed',
+            rule='Use a concise answer.', version=1, verified=False)
+        conflicting = active_lesson(lesson_id='lesson-current', rule='Use a long answer.',
+            version=3)
+        target = state(lessons=[conflicting, proposed])
+        self.module.activate_lesson(
+            target, 'lesson-proposed', '2026-10-10T01:02:03Z')
+        self.assertEqual(conflicting['status'], 'superseded')
+        self.assertEqual(conflicting['updated_at'], '2026-10-10T01:02:03Z')
+        self.assertEqual(proposed['status'], 'active')
+        self.assertEqual(proposed['version'], 4)
+        self.assertEqual(proposed['supersedes'], 'lesson-current')
+        self.assertEqual(proposed['updated_at'], '2026-10-10T01:02:03Z')
+
     def test_decision_contains_no_feedback_or_prompt_content(self):
         decision = self.module.activation_decision(candidate(), [], 1)
         serialized = str(decision).lower()

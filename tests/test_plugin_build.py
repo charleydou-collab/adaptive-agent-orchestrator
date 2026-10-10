@@ -44,6 +44,9 @@ class PluginBuildTests(unittest.TestCase):
                 self.assertEqual(manifest["version"], "0.2.0")
                 self.assertEqual(compatibility["name"], manifest["name"])
                 self.assertEqual(compatibility["version"], manifest["version"])
+                expected_core = {"name": "adaptive-agent-orchestrator", "version": "0.2.0"}
+                self.assertEqual(manifest["sharedCore"], expected_core)
+                self.assertEqual(compatibility["sharedCore"], expected_core)
                 for key, value in manifest["extensions"]["com.openai"]["interface"].items():
                     self.assertEqual(compatibility["interface"][key], value)
                 self.assertIn(b"name: adaptive-agent-orchestrator", bundle.read(skill))

@@ -61,7 +61,8 @@ class ChatLearningEndToEndTests(unittest.TestCase):
     def request(self, conversation_id, role='management'):
         value = retrieval_request()
         value.update(conversation_key=conversation_key('codex-local', conversation_id),
-            role=role, lesson_limit=5 if role == 'management' else 3, episode_limit=20)
+            role=role, required_evidence_refs=[],
+            lesson_limit=5 if role == 'management' else 3, episode_limit=20)
         return value
 
     def platform(self, name):
@@ -96,8 +97,8 @@ class ChatLearningEndToEndTests(unittest.TestCase):
         first = update_state(self.state_root, 'codex-local', 'conversation-one', first['revision'],
             lambda state: state['episodes'].extend(episodes))
         bounded = compile_context(self.request('conversation-one'), codex, first, [], [],
-            {'policy': 10, 'capsule': 10, 'lessons': 40, 'episodes': 100,
-                'recent_turns': 30, 'total': 150})
+            {'policy': 100, 'capsule': 10, 'lessons': 40, 'episodes': 100,
+                'recent_turns': 30, 'total': 240})
         self.assertEqual(bounded['status'], 'ready')
         self.assertLessEqual(bounded['package']['total_estimated_tokens'], 150)
         self.assertTrue(any(item['reason_code'] == 'budget' for item in bounded['package']['omissions']))
@@ -105,8 +106,8 @@ class ChatLearningEndToEndTests(unittest.TestCase):
         mandatory = [{'ref': 'turn-mandatory', 'content': 'x' * 300, 'topics': [],
             'entities': [], 'mandatory': True, 'requires_exact': True}]
         blocked = compile_context(self.request('conversation-one'), codex, first, mandatory, [],
-            {'policy': 10, 'capsule': 10, 'lessons': 40, 'episodes': 100,
-                'recent_turns': 5, 'total': 165})
+            {'policy': 100, 'capsule': 10, 'lessons': 40, 'episodes': 100,
+                'recent_turns': 5, 'total': 240})
         self.assertEqual(blocked['status'], 'blocked')
         self.assertEqual(blocked['blocker']['refs'], ['turn-mandatory'])
 

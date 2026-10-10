@@ -4,6 +4,10 @@
   "version": "0.2.0",
   "description": "Codex distribution for capability-routed orchestration, chat-scoped learning, bounded context compilation, verification, and scoring.",
   "coreSkill": "adaptive-agent-orchestrator",
+  "sharedCore": {
+    "name": "adaptive-agent-orchestrator",
+    "version": "0.2.0"
+  },
   "platform": "codex",
   "runtime": {
     "language": "python",

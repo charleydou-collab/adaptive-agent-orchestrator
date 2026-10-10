@@ -139,6 +139,33 @@ def forget_lesson(state: Dict[str, Any], lesson_id: str) -> None:
     matches[0]['updated_at'] = _now()
 
 
+def activate_lesson(state: Dict[str, Any], lesson_id: str, updated_at: str = None) -> None:
+    """Confirm one proposal after rechecking current same-conversation conflicts."""
+    timestamp = updated_at or _now()
+    _instant(timestamp)
+    matches = [item for item in state.get('lessons', [])
+        if item.get('lesson_id') == lesson_id]
+    if len(matches) != 1 or matches[0].get('status') != 'proposed':
+        raise ValueError('lesson unavailable')
+    lesson = matches[0]
+    if lesson.get('category') == 'factual-correction' and not lesson.get('verified'):
+        raise ValueError('evidence required')
+    conflicts = [item for item in state['lessons']
+        if item is not lesson and _conflicts(lesson, item)]
+    newest = max(conflicts,
+        key=lambda item: (item.get('version', 0), item.get('created_at', ''), item['lesson_id']),
+        default=None)
+    for item in conflicts:
+        item['status'] = 'superseded'
+        item['updated_at'] = timestamp
+    lesson['status'] = 'active'
+    lesson['version'] = max([lesson.get('version', 0)]
+        + [item.get('version', 0) for item in conflicts]) + 1
+    if newest is not None:
+        lesson['supersedes'] = newest['lesson_id']
+    lesson['updated_at'] = timestamp
+
+
 def _instant(value: str) -> datetime:
     if not isinstance(value, str) or not value:
         raise ValueError('invalid expiration')

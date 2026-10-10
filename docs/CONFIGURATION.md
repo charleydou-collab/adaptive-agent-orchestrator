@@ -49,6 +49,20 @@ ambiguous partial installation. The installer preserves `model` and
 affected configuration file, replaces only managed files, and leaves existing
 ledger and chat-state directories untouched.
 
+Every managed v0.1.3 skill and role file is verified before replacement. A
+customized marked bootstrap is refused by default. After reviewing the planned
+v0.2.0 block, migrate that one intentional customization explicitly:
+
+```bash
+python3 scripts/install_codex.py --upgrade --migrate-custom-bootstrap \
+  --codex-home "$HOME/.codex" \
+  --agents-home "$HOME/.agents"
+```
+
+This mode still requires exact v0.1.3 skill and role files and creates
+non-overwriting backups of the configuration, bootstrap, full skill tree, and
+agent directory before transactional replacement.
+
 ### Manual merge
 
 If `[agents]` already exists, merge [`config-snippet.toml`](../adapters/codex/config-snippet.toml) manually. Preserve existing role names and paths, and resolve collisions explicitly. Copy the core skill and only the role files you intend to register.

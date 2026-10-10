@@ -101,12 +101,18 @@ python3 scripts/install_codex.py --upgrade \
   --agents-home "$HOME/.agents"
 ```
 
+If only the marked v0.1.3 bootstrap block was intentionally customized, review
+its backup and migrate it explicitly with `--migrate-custom-bootstrap`. All
+other managed skill and role files must still match the known v0.1.3 release.
+
 Safety behavior:
 
 - creates `config.toml.pre-adaptive-orchestrator` before modifying configuration;
 - refuses to overwrite an existing skill, role file, bootstrap block, backup, or `[agents]` table;
 - never rewrites the configured main model or `model_reasoning_effort`;
 - preserves existing ledger and chat-state data during a guarded upgrade;
+- backs up the configuration, bootstrap, full managed skill, and agent directory
+  before an upgrade, and rolls managed targets back if replacement fails;
 - requires manual merging when an existing agent configuration is present.
 
 Initialize a workspace ledger only if you want durable operational scoring:

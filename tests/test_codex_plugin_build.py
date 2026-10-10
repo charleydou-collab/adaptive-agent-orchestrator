@@ -33,6 +33,8 @@ class CodexPluginBuildTests(unittest.TestCase):
                 self.assertEqual(manifest['name'], ROOT_NAME)
                 self.assertEqual(manifest['version'], '0.2.0')
                 self.assertEqual(manifest['coreSkill'], 'adaptive-agent-orchestrator')
+                self.assertEqual(manifest['sharedCore'], {
+                    'name': 'adaptive-agent-orchestrator', 'version': '0.2.0'})
                 skill = f'{ROOT_NAME}/skills/adaptive-agent-orchestrator/SKILL.md'
                 self.assertIn(skill, names)
                 self.assertIn(b'name: adaptive-agent-orchestrator', bundle.read(skill))

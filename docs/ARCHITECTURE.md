@@ -51,7 +51,11 @@ Adapters resolve abstract requirements into available runtime behavior.
 
 ### Deterministic tooling
 
-`scripts/install_codex.py` performs a guarded, additive Codex installation. It backs up the configuration and refuses ambiguous merges.
+`scripts/install_codex.py` performs a guarded, additive Codex installation. It
+verifies known managed files, backs up every replaced target, rolls back failed
+upgrades, and refuses ambiguous merges. An explicit custom-bootstrap migration
+path preserves the previous marked block in a backup while retaining strict
+validation of all other v0.1.3 managed files.
 
 `scripts/build_chatgpt_plugin.py` constructs the plugin ZIP from an explicit inventory. It fixes ZIP timestamps and file modes, sorts reference and schema files, and excludes local scripts, development records, caches, and runtime state.
 
