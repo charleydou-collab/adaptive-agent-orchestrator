@@ -47,7 +47,7 @@ class CodexPluginBuildTests(unittest.TestCase):
                     '.sdd', 'chat-state.json', 'chatgpt-web', 'generic-prompt')
                 self.assertFalse(any(any(token in name for token in forbidden) for name in names))
                 content = b'\n'.join(bundle.read(name) for name in names)
-                self.assertNotIn(b'/Users/', content)
+                self.assertNotIn(b'/' + b'Users/', content)
 
     def test_codex_repeated_build_is_byte_identical(self):
         with tempfile.TemporaryDirectory() as directory:

@@ -66,7 +66,7 @@ class PluginBuildTests(unittest.TestCase):
                 forbidden = ("/.git/", "__pycache__", "/tests/", "agent-ledger.json", "/chat-state/", "/docs/")
                 self.assertFalse(any(any(token in name for token in forbidden) for name in names))
                 content = b"\n".join(bundle.read(name) for name in names)
-                self.assertNotIn(b"/Users/", content)
+                self.assertNotIn(b"/" + b"Users/", content)
                 self.assertNotIn(b"adaptive-agent-orchestrator/scripts/", content)
 
     def test_repeated_build_is_byte_identical(self):

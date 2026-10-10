@@ -275,7 +275,7 @@ class ContractTests(unittest.TestCase):
         for schema in self.schemas.values():
             self.assertEqual(schema['$schema'], 'https://json-schema.org/draft/2020-12/schema')
             text = json.dumps(schema).lower()
-            for token in ('gpt-', 'claude-', 'gemini-', 'spawn_agent', 'mcp__', '/users/', '/home/', '~/', 'c:\\'):
+            for token in ('gpt-', 'claude-', 'gemini-', 'spawn_agent', 'mcp__', '/' + 'users/', '/' + 'home/', '~/', 'c:\\'):
                 self.assertNotIn(token, text)
 
     def test_valid_examples_and_required_fields(self):

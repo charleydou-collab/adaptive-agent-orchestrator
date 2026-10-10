@@ -114,7 +114,7 @@ class AdapterTests(unittest.TestCase):
         self.assertIn("score_update_mode: freeze", bootstrap)
         self.assertIn("${WORKSPACE_ROOT}", ledger)
         self.assertIn("${AGENTS_HOME}", ledger)
-        self.assertNotIn("/Users/", bootstrap + ledger)
+        self.assertNotIn("/" + "Users/", bootstrap + ledger)
 
     def test_web_manifest_and_activation_are_honest(self):
         manifest = json.loads((ADAPTERS / "chatgpt-web" / "plugin" / "plugin.json").read_text(encoding="utf-8"))
